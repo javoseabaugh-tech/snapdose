@@ -9,15 +9,21 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="SnapDose">
   <meta name="theme-color" content="#ffffff">
+  
+  <!-- Apple Touch App Icon for iPhone Home Screen -->
+  <link rel="apple-touch-icon" href="image.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="image.png">
+  <link rel="icon" type="image/png" href="image.png">
+
   <title>SnapDose - Photo-Confirmed Meds</title>
 
-  <!-- Embedded Native CSS (iOS Safari Event & Safe-Area Optimized) -->
+  <!-- Embedded Native Styling -->
   <style>
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      -webkit-tap-highlight-color: rgba(13, 148, 136, 0.15);
+      -webkit-tap-highlight-color: rgba(13, 148, 136, 0.2);
       touch-action: manipulation;
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
     }
@@ -33,7 +39,6 @@
       -webkit-text-size-adjust: 100%;
     }
 
-    /* Fixed Viewport Shell Constrained Between iOS Safari Toolbars */
     #app-container {
       position: fixed;
       top: 0;
@@ -64,15 +69,15 @@
     }
 
     .header-logo-box {
-      height: 28px;
+      height: 32px;
       display: flex;
       align-items: center;
     }
 
     .header-logo-img {
-      max-height: 28px;
+      max-height: 32px;
       width: auto;
-      max-width: 130px;
+      max-width: 150px;
       object-fit: contain;
     }
 
@@ -94,7 +99,7 @@
       display: flex;
       align-items: center;
       gap: 4px;
-      cursor: pointer !important;
+      cursor: pointer;
     }
 
     /* Main Scrollable Viewport */
@@ -121,21 +126,6 @@
       flex-direction: column;
       gap: 10px;
       flex-shrink: 0;
-    }
-
-    .hero-card {
-      text-align: center;
-      padding: 12px 16px;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .hero-logo-img {
-      max-height: 70px;
-      width: auto;
-      max-width: 220px;
-      margin: 0 auto;
-      object-fit: contain;
     }
 
     /* Progress & Streak Bar */
@@ -313,8 +303,8 @@
       text-transform: uppercase;
     }
 
-    /* Interactive Elements & Touch Targets */
-    [data-action], button, select, input, a {
+    /* Interactive Buttons */
+    button, select, input, a {
       cursor: pointer !important;
       user-select: none;
       -webkit-user-select: none;
@@ -545,36 +535,116 @@
         <span class="header-logo-fallback" style="display:none;">SnapDose</span>
       </div>
 
-      <button data-action="openPwaGuide" class="pwa-pill-badge">
+      <button onclick="window.openPwaGuide()" class="pwa-pill-badge">
         <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
         <span>iOS PWA</span>
       </button>
     </header>
 
-    <!-- Scrollable Main Viewport -->
+    <!-- Scrollable Main Viewport (Pre-rendered default markup guarantees clean schedule display) -->
     <main id="tab-content">
-      <!-- Content populated dynamically -->
+      <!-- STREAK & PROGRESS CARD -->
+      <div class="snap-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="font-size:16px;">🔥</span>
+            <span id="streak-text" style="font-size:14px; font-weight:700;">1 Day Streak</span>
+          </div>
+          <span id="percent-badge" class="status-tag scheduled">0% Complete</span>
+        </div>
+
+        <div class="progress-track">
+          <div id="progress-bar-fill" class="progress-fill" style="width: 0%;"></div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:#64748b; padding-top:4px; border-top:1px solid #f1f5f9;">
+          <span id="doses-summary-text">0 of 2 Doses Verified</span>
+          <span>On Schedule</span>
+        </div>
+
+        <!-- Weekly Heatmap -->
+        <div class="weekly-row">
+          <div class="weekly-day-item"><span class="weekly-day-label">M</span><div class="weekly-day-circle today-active"></div></div>
+          <div class="weekly-day-item"><span class="weekly-day-label">T</span><div class="weekly-day-circle"></div></div>
+          <div class="weekly-day-item"><span class="weekly-day-label">W</span><div class="weekly-day-circle"></div></div>
+          <div class="weekly-day-item"><span class="weekly-day-label">T</span><div class="weekly-day-circle"></div></div>
+          <div class="weekly-day-item"><span class="weekly-day-label">F</span><div class="weekly-day-circle"></div></div>
+          <div class="weekly-day-item"><span class="weekly-day-label">S</span><div class="weekly-day-circle"></div></div>
+          <div class="weekly-day-item"><span class="weekly-day-label">S</span><div class="weekly-day-circle"></div></div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Today's Schedule</h2>
+          <p class="section-subtitle">Active Reminders</p>
+        </div>
+        <button onclick="window.openAddModal()" class="snap-btn-primary">+ Add Med</button>
+      </div>
+
+      <!-- Schedule Card Items -->
+      <div id="med-list-container" style="display:flex; flex-direction:column; gap:12px;">
+        <div class="snap-card">
+          <div class="med-item-header">
+            <div class="med-info-group">
+              <div class="med-icon-badge">💊</div>
+              <div>
+                <h3 class="med-name">Amoxicillin</h3>
+                <p class="med-details">500 mg • Take with food and water</p>
+              </div>
+            </div>
+            <span class="status-tag scheduled">Scheduled</span>
+          </div>
+          <div class="med-card-footer">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span class="med-time-label">🕒 08:00 • 20:00</span>
+              <span class="tone-badge">Urgent Pulse</span>
+            </div>
+            <button onclick="window.triggerVerification('med-1')" class="snap-btn-primary">Take & Snap</button>
+          </div>
+        </div>
+
+        <div class="snap-card">
+          <div class="med-item-header">
+            <div class="med-info-group">
+              <div class="med-icon-badge">💊</div>
+              <div>
+                <h3 class="med-name">Vitamin D3 & Zinc</h3>
+                <p class="med-details">2000 IU • Take after lunch</p>
+              </div>
+            </div>
+            <span class="status-tag scheduled">Scheduled</span>
+          </div>
+          <div class="med-card-footer">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span class="med-time-label">🕒 12:30</span>
+              <span class="tone-badge">Gentle Chime</span>
+            </div>
+            <button onclick="window.triggerVerification('med-2')" class="snap-btn-primary">Take & Snap</button>
+          </div>
+        </div>
+      </div>
     </main>
 
     <!-- Bottom Navigation Bar -->
     <nav>
-      <button data-action="switchTab" data-arg="today" id="nav-today" class="nav-btn active">
+      <button onclick="window.switchTab('today')" id="nav-today" class="nav-btn active">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
         <span>Today</span>
       </button>
 
-      <button data-action="switchTab" data-arg="meds" id="nav-meds" class="nav-btn">
+      <button onclick="window.switchTab('meds')" id="nav-meds" class="nav-btn">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
         <span>Roster</span>
       </button>
 
-      <button data-action="switchTab" data-arg="audit" id="nav-audit" class="nav-btn">
+      <button onclick="window.switchTab('audit')" id="nav-audit" class="nav-btn">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
         <span>Audit Log</span>
       </button>
 
-      <button data-action="switchTab" data-arg="settings" id="nav-settings" class="nav-btn">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+      <button onclick="window.switchTab('settings')" id="nav-settings" class="nav-btn">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-.826 3.31-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
         <span>Settings</span>
       </button>
     </nav>
@@ -606,7 +676,7 @@
             </div>
           </div>
 
-          <button data-action="captureSnapshot" class="snap-btn-primary" style="padding:14px; font-size:14px; width:100%;">
+          <button onclick="window.captureSnapshot()" class="snap-btn-primary" style="padding:14px; font-size:14px; width:100%;">
             📸 Snap Verification Photo
           </button>
         </div>
@@ -624,7 +694,7 @@
 
         <!-- Start Camera Button -->
         <div id="start-camera-box">
-          <button data-action="startCameraStream" class="snap-btn-primary" style="padding:14px; font-size:14px; width:100%;">
+          <button onclick="window.startCameraStream()" class="snap-btn-primary" style="padding:14px; font-size:14px; width:100%;">
             📷 Open Camera to Verify
           </button>
         </div>
@@ -635,15 +705,15 @@
         <div style="display:flex; flex-direction:column; gap:4px;">
           <p style="font-size:11px; text-align:center; color:#cbd5e1;">Need more time? Snooze reminder:</p>
           <div class="snooze-grid">
-            <button data-action="snoozeAlarm" data-arg="5" class="snooze-btn">+5m</button>
-            <button data-action="snoozeAlarm" data-arg="15" class="snooze-btn">+15m</button>
-            <button data-action="snoozeAlarm" data-arg="30" class="snooze-btn">+30m</button>
-            <button data-action="snoozeAlarm" data-arg="60" class="snooze-btn">+1h</button>
+            <button onclick="window.snoozeAlarm(5)" class="snooze-btn">+5m</button>
+            <button onclick="window.snoozeAlarm(15)" class="snooze-btn">+15m</button>
+            <button onclick="window.snoozeAlarm(30)" class="snooze-btn">+30m</button>
+            <button onclick="window.snoozeAlarm(60)" class="snooze-btn">+1h</button>
           </div>
         </div>
 
         <div style="text-align:center; padding-top:6px; border-top:1px solid #1e293b;">
-          <button data-action="openSkipModal" style="background:none; border:none; color:#fca5a5; font-size:11px; font-weight:600; text-decoration:underline;">
+          <button onclick="window.openSkipModal()" style="background:none; border:none; color:#fca5a5; font-size:11px; font-weight:600; text-decoration:underline;">
             ⚠️ Unable to take pill? Emergency Skip
           </button>
         </div>
@@ -655,14 +725,14 @@
       <div class="modal-content">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
           <h3 style="font-size:15px; font-weight:700; color:#be123c;">Skip Dose Override</h3>
-          <button data-action="closeSkipModal" style="background:none; border:none; color:#94a3b8; font-size:16px;">✕</button>
+          <button onclick="window.closeSkipModal()" style="background:none; border:none; color:#94a3b8; font-size:16px;">✕</button>
         </div>
 
         <p style="font-size:12px; color:#64748b; line-height:1.4;">
           Please log the reason you cannot take this dose. This action disarms the alarm and records an entry in your audit history.
         </p>
 
-        <form id="skip-form" style="display:flex; flex-direction:column; gap:12px;">
+        <form id="skip-form" onsubmit="window.handleConfirmSkip(event)" style="display:flex; flex-direction:column; gap:12px;">
           <div class="form-group">
             <label class="form-label">Reason for Skipping</label>
             <select id="skip-reason-select" required class="form-select">
@@ -684,7 +754,7 @@
           </div>
 
           <div style="display:flex; gap:8px; padding-top:4px;">
-            <button type="button" data-action="closeSkipModal" class="snap-btn-secondary" style="width:50%;">Cancel</button>
+            <button type="button" onclick="window.closeSkipModal()" class="snap-btn-secondary" style="width:50%;">Cancel</button>
             <button type="submit" class="snap-btn-danger" style="width:50%;">Confirm Skip</button>
           </div>
         </form>
@@ -696,10 +766,10 @@
       <div class="modal-content">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
           <h3 style="font-size:15px; font-weight:700;">Add Medication</h3>
-          <button data-action="closeAddModal" style="background:none; border:none; color:#94a3b8; font-size:16px;">✕</button>
+          <button onclick="window.closeAddModal()" style="background:none; border:none; color:#94a3b8; font-size:16px;">✕</button>
         </div>
 
-        <form id="add-med-form" style="display:flex; flex-direction:column; gap:10px;">
+        <form id="add-med-form" onsubmit="window.handleAddMedication(event)" style="display:flex; flex-direction:column; gap:10px;">
           <div class="form-group">
             <label class="form-label">Medication Name</label>
             <input type="text" id="input-name" required placeholder="e.g. Amoxicillin" class="form-input">
@@ -721,7 +791,7 @@
                 <option value="siren">Escalating Siren (High Urgency)</option>
                 <option value="classic">Classic Beep (80s Digital)</option>
               </select>
-              <button type="button" data-action="previewSelectedTone" data-arg="input-tone" class="snap-btn-secondary" style="padding:8px 12px;">🔊 Test</button>
+              <button type="button" onclick="window.previewSelectedTone('input-tone')" class="snap-btn-secondary" style="padding:8px 12px;">🔊 Test</button>
             </div>
           </div>
           <div class="form-group">
@@ -730,7 +800,7 @@
           </div>
 
           <div style="display:flex; gap:8px; padding-top:6px;">
-            <button type="button" data-action="closeAddModal" class="snap-btn-secondary" style="width:50%;">Cancel</button>
+            <button type="button" onclick="window.closeAddModal()" class="snap-btn-secondary" style="width:50%;">Cancel</button>
             <button type="submit" class="snap-btn-primary" style="width:50%;">Save Schedule</button>
           </div>
         </form>
@@ -742,7 +812,7 @@
       <div class="modal-content">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <h3 style="font-size:15px; font-weight:700;">Install SnapDose on iPhone</h3>
-          <button data-action="closePwaGuide" style="background:none; border:none; color:#94a3b8; font-size:16px;">✕</button>
+          <button onclick="window.closePwaGuide()" style="background:none; border:none; color:#94a3b8; font-size:16px;">✕</button>
         </div>
         <p style="font-size:12px; color:#64748b; line-height:1.4;">Host on GitHub Pages or Firebase and launch like a native iOS App:</p>
         <ol style="font-size:12px; color:#475569; padding-left:18px; display:flex; flex-direction:column; gap:6px;">
@@ -751,7 +821,7 @@
           <li>Select <strong>'Add to Home Screen'</strong>.</li>
           <li>Open directly from your home screen!</li>
         </ol>
-        <button data-action="closePwaGuide" class="snap-btn-primary" style="width:100%; padding:10px;">Got It</button>
+        <button onclick="window.closePwaGuide()" class="snap-btn-primary" style="width:100%; padding:10px;">Got It</button>
       </div>
     </div>
 
@@ -759,7 +829,7 @@
 
   <!-- JS ENGINE -->
   <script>
-    const apiKey = ""; // Canvas runtime environment key
+    const apiKey = ""; // Canvas runtime key
 
     const DEFAULT_MEDS = [
       {
@@ -838,7 +908,7 @@
     let currentCapturedBase64 = null;
     let currentAiResult = null;
 
-    // Web Audio Multi-Tone Engine
+    // Web Audio Multi-Tone Synth
     class AudioAlarmSynth {
       constructor() {
         this.ctx = null;
@@ -936,12 +1006,12 @@
     }
     const alarmSynth = new AudioAlarmSynth();
 
-    function previewSelectedTone(selectId) {
+    window.previewSelectedTone = function(selectId) {
       const el = document.getElementById(selectId);
       const tone = el ? el.value : 'urgent';
       alarmSynth.start(tone);
       setTimeout(() => alarmSynth.stop(), 2500);
-    }
+    };
 
     function saveState() {
       try {
@@ -1003,13 +1073,13 @@
       };
     }
 
-    function switchTab(tab) {
+    window.switchTab = function(tab) {
       currentTab = tab;
       document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
       const activeBtn = document.getElementById(`nav-`);
       if (activeBtn) activeBtn.classList.add('active');
       renderMainContent();
-    }
+    };
 
     function formatToneName(toneKey) {
       switch(toneKey) {
@@ -1029,12 +1099,6 @@
 
         if (currentTab === 'today') {
           container.innerHTML = `
-            <!-- HERO LOGO CARD (Sized down for crisp layout) -->
-            <div class="snap-card hero-card">
-              <img src="image.png" alt="SnapDose Logo" class="hero-logo-img" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';" />
-              <h1 style="display:none; font-size:22px; font-weight:800; color:#0b132a; text-align:center;">SnapDose</h1>
-            </div>
-
             <!-- STREAK & PROGRESS CARD -->
             <div class="snap-card">
               <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -1070,7 +1134,7 @@
                 <h2 class="section-title">Today's Schedule</h2>
                 <p class="section-subtitle"> 'long', month: 'short', day: 'numeric' )}</p>
               </div>
-              <button data-action="openAddModal" class="snap-btn-primary">+ Add Med</button>
+              <button onclick="window.openAddModal()" class="snap-btn-primary">+ Add Med</button>
             </div>
 
             <div style="display:flex; flex-direction:column; gap:12px;">
@@ -1095,7 +1159,7 @@
                       <span class="tone-badge"></span>
                     </div>
                     ${(med.status !== 'taken' && med.status !== 'skipped') ? `
-                      <button data-action="triggerVerification" data-arg="" class="snap-btn-primary">Take & Snap</button>
+                      <button onclick="window.triggerVerification('')" class="snap-btn-primary">Take & Snap</button>
                     ` : ''
                   </div>
                 </div>
@@ -1106,7 +1170,7 @@
           container.innerHTML = `
             <div class="section-header">
               <h2 class="section-title">Medication Roster</h2>
-              <button data-action="openAddModal" class="snap-btn-primary">+ Add New</button>
+              <button onclick="window.openAddModal()" class="snap-btn-primary">+ Add New</button>
             </div>
             <div style="display:flex; flex-direction:column; gap:12px;">
               row; justify-content:space-between; align-items:center;">
@@ -1114,7 +1178,7 @@
                     <h4 class="med-name"></h4>
                     <p class="med-details"> •  • </p>
                   </div>
-                  <button data-action="deleteMedication" data-arg="" style="background:none; border:none; color:#ef4444; font-size:12px; font-weight:600;">Delete</button>
+                  <button onclick="window.deleteMedication('')" style="background:none; border:none; color:#ef4444; font-size:12px; font-weight:600;">Delete</button>
                 </div>
               `).join('')
             </div>
@@ -1186,10 +1250,10 @@
               <h4 style="font-size:13px; font-weight:700;">Alarm Sound Test</h4>
               <p style="font-size:11px; color:#64748b;">Test Web Audio alarm sound profiles:</p>
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; padding-top:4px;">
-                <button data-action="testTone" data-arg="gentle" class="snap-btn-secondary">🔊 Gentle</button>
-                <button data-action="testTone" data-arg="urgent" class="snap-btn-secondary">🔊 Urgent</button>
-                <button data-action="testTone" data-arg="siren" class="snap-btn-secondary">🔊 Siren</button>
-                <button data-action="testTone" data-arg="classic" class="snap-btn-secondary">🔊 Classic</button>
+                <button onclick="window.testTone('gentle')" class="snap-btn-secondary">🔊 Gentle</button>
+                <button onclick="window.testTone('urgent')" class="snap-btn-secondary">🔊 Urgent</button>
+                <button onclick="window.testTone('siren')" class="snap-btn-secondary">🔊 Siren</button>
+                <button onclick="window.testTone('classic')" class="snap-btn-secondary">🔊 Classic</button>
               </div>
             </div>
 
@@ -1198,7 +1262,7 @@
               <p style="font-size:11px; color:#64748b; line-height:1.4;">All medication schedules, camera logs, and settings are saved locally on your iPhone device with zero cloud server persistence.</p>
             </div>
 
-            <button data-action="resetData" class="snap-btn-danger" style="width:100%; padding:12px;">Reset Demo Data</button>
+            <button onclick="window.resetData()" class="snap-btn-danger" style="width:100%; padding:12px;">Reset Demo Data</button>
           `;
         }
       } catch(err) {
@@ -1206,13 +1270,13 @@
           <div class="snap-card" style="text-align:center; padding:24px; gap:14px;">
             <h3 style="font-size:16px; font-weight:700; color:#be123c;">Data Reset Required</h3>
             <p style="font-size:12px; color:#64748b;">Cache cleared. Tap below to refresh your schedule.</p>
-            <button data-action="resetData" class="snap-btn-primary" style="width:100%;">Reset Data</button>
+            <button onclick="window.resetData()" class="snap-btn-primary" style="width:100%;">Reset Data</button>
           </div>
         `;
       }
     }
 
-    function triggerVerification(medId) {
+    window.triggerVerification = function(medId) {
       const med = medications.find(m => m.id === medId);
       if (!med) return;
       activeAlarmMed = med;
@@ -1226,9 +1290,9 @@
       document.getElementById('alarm-overlay').classList.remove('hidden');
 
       alarmSynth.start(med.tone || 'urgent');
-    }
+    };
 
-    async function startCameraStream() {
+    window.startCameraStream = async function() {
       document.getElementById('start-camera-box').classList.add('hidden');
       document.getElementById('camera-box').classList.remove('hidden');
 
@@ -1244,7 +1308,7 @@
       } catch (err) {
         alert("Camera access required for pill photo verification. Please allow camera permissions in Safari.");
       }
-    }
+    };
 
     function stopCameraStream() {
       if (activeCameraStream) {
@@ -1253,7 +1317,7 @@
       }
     }
 
-    function captureSnapshot() {
+    window.captureSnapshot = function() {
       const video = document.getElementById('webcam-video');
       const canvas = document.createElement('canvas');
       const maxWidth = 480;
@@ -1273,7 +1337,7 @@
       document.getElementById('captured-img').src = dataUrl;
 
       verifyWithGeminiAI(dataUrl);
-    }
+    };
 
     async function verifyWithGeminiAI(base64Image) {
       const statusCard = document.getElementById('ai-status-card');
@@ -1322,7 +1386,7 @@
               <p style="color:#cbd5e1;"></p>
             `;
             clearBtnBox.innerHTML = `
-              <button data-action="confirmAndClearAlarm" class="snap-btn-success">Confirm & Stop Alarm</button>
+              <button onclick="window.confirmAndClearAlarm()" class="snap-btn-success">Confirm & Stop Alarm</button>
             `;
           } else {
             statusCard.style.border = "1px solid #ef4444";
@@ -1331,7 +1395,7 @@
               <p style="color:#cbd5e1;"></p>
             `;
             clearBtnBox.innerHTML = `
-              <button data-action="startCameraStream" class="snap-btn-secondary" style="width:100%;">Retake Photo</button>
+              <button onclick="window.startCameraStream()" class="snap-btn-secondary" style="width:100%;">Retake Photo</button>
             `;
           }
         } catch (err) {
@@ -1340,7 +1404,7 @@
             currentAiResult = { isValid: true, pillDescription: "Manual camera proof logged" };
             statusCard.style.border = "1px solid #10b981";
             statusCard.innerHTML = `<p style="font-weight:700; color:#34d399;">✓ Photo Proof Logged</p>`;
-            clearBtnBox.innerHTML = `<button data-action="confirmAndClearAlarm" class="snap-btn-success">Confirm & Stop Alarm</button>`;
+            clearBtnBox.innerHTML = `<button onclick="window.confirmAndClearAlarm()" class="snap-btn-success">Confirm & Stop Alarm</button>`;
           } else {
             await new Promise(r => setTimeout(r, delays[attempts - 1]));
           }
@@ -1348,7 +1412,7 @@
       }
     }
 
-    function confirmAndClearAlarm() {
+    window.confirmAndClearAlarm = function() {
       if (!activeAlarmMed || !currentCapturedBase64) return;
       alarmSynth.stop();
 
@@ -1370,9 +1434,9 @@
       activeAlarmMed = null;
       currentCapturedBase64 = null;
       renderMainContent();
-    }
+    };
 
-    function snoozeAlarm(mins) {
+    window.snoozeAlarm = function(mins) {
       alarmSynth.stop();
       stopCameraStream();
       if (activeAlarmMed) {
@@ -1382,12 +1446,12 @@
       document.getElementById('alarm-overlay').classList.add('hidden');
       activeAlarmMed = null;
       renderMainContent();
-    }
+    };
 
-    function openSkipModal() { document.getElementById('skip-modal').classList.remove('hidden'); }
-    function closeSkipModal() { document.getElementById('skip-modal').classList.add('hidden'); }
+    window.openSkipModal = function() { document.getElementById('skip-modal').classList.remove('hidden'); };
+    window.closeSkipModal = function() { document.getElementById('skip-modal').classList.add('hidden'); };
 
-    function handleConfirmSkip(e) {
+    window.handleConfirmSkip = function(e) {
       if (e) e.preventDefault();
       if (!activeAlarmMed) return;
 
@@ -1414,19 +1478,19 @@
       medications = medications.map(m => m.id === activeAlarmMed.id ? { ...m, status: 'skipped', skipReason: reason } : m);
       saveState();
 
-      closeSkipModal();
+      window.closeSkipModal();
       document.getElementById('alarm-overlay').classList.add('hidden');
       activeAlarmMed = null;
       currentCapturedBase64 = null;
       renderMainContent();
-    }
+    };
 
-    function openAddModal() { document.getElementById('add-modal').classList.remove('hidden'); }
-    function closeAddModal() { alarmSynth.stop(); document.getElementById('add-modal').classList.add('hidden'); }
-    function openPwaGuide() { document.getElementById('pwa-modal').classList.remove('hidden'); }
-    function closePwaGuide() { document.getElementById('pwa-modal').classList.add('hidden'); }
+    window.openAddModal = function() { document.getElementById('add-modal').classList.remove('hidden'); };
+    window.closeAddModal = function() { alarmSynth.stop(); document.getElementById('add-modal').classList.add('hidden'); };
+    window.openPwaGuide = function() { document.getElementById('pwa-modal').classList.remove('hidden'); };
+    window.closePwaGuide = function() { document.getElementById('pwa-modal').classList.add('hidden'); };
 
-    function handleAddMedication(e) {
+    window.handleAddMedication = function(e) {
       if (e) e.preventDefault();
       alarmSynth.stop();
 
@@ -1452,17 +1516,22 @@
         status: 'pending'
       });
       saveState();
-      closeAddModal();
+      window.closeAddModal();
       renderMainContent();
-    }
+    };
 
-    function deleteMedication(id) {
+    window.deleteMedication = function(id) {
       medications = medications.filter(m => m.id !== id);
       saveState();
       renderMainContent();
-    }
+    };
 
-    function resetData() {
+    window.testTone = function(arg) {
+      alarmSynth.start(arg || 'urgent');
+      setTimeout(() => alarmSynth.stop(), 2500);
+    };
+
+    window.resetData = function() {
       try {
         localStorage.removeItem('snap_meds');
         localStorage.removeItem('snap_logs');
@@ -1471,66 +1540,21 @@
       adherenceLogs = [];
       saveState();
       renderMainContent();
-    }
+    };
 
-    // Schedule Checker Interval
+    // Schedule Checker
     setInterval(() => {
       if (activeAlarmMed) return;
       const now = new Date();
       const timeStr = `:`;
       const match = medications.find(m => Array.isArray(m.times) && m.times.includes(timeStr) && m.status !== 'taken' && m.status !== 'skipped');
-      if (match) triggerVerification(match.id);
+      if (match) window.triggerVerification(match.id);
     }, 10000);
-
-    // Global Action Handler Engine (Guarantees touch & click execution on iOS Safari)
-    function handleAction(action, arg) {
-      switch(action) {
-        case 'switchTab': switchTab(arg); break;
-        case 'openAddModal': openAddModal(); break;
-        case 'closeAddModal': closeAddModal(); break;
-        case 'openPwaGuide': openPwaGuide(); break;
-        case 'closePwaGuide': closePwaGuide(); break;
-        case 'openSkipModal': openSkipModal(); break;
-        case 'closeSkipModal': closeSkipModal(); break;
-        case 'triggerVerification': triggerVerification(arg); break;
-        case 'startCameraStream': startCameraStream(); break;
-        case 'captureSnapshot': captureSnapshot(); break;
-        case 'confirmAndClearAlarm': confirmAndClearAlarm(); break;
-        case 'snoozeAlarm': snoozeAlarm(parseInt(arg || '5')); break;
-        case 'deleteMedication': deleteMedication(arg); break;
-        case 'resetData': resetData(); break;
-        case 'previewSelectedTone': previewSelectedTone(arg); break;
-        case 'testTone':
-          alarmSynth.start(arg || 'urgent');
-          setTimeout(() => alarmSynth.stop(), 2500);
-          break;
-      }
-    }
-
-    // Global Listener Binders
-    document.addEventListener('click', function(e) {
-      const btn = e.target.closest('[data-action]');
-      if (btn) {
-        e.preventDefault();
-        const action = btn.getAttribute('data-action');
-        const arg = btn.getAttribute('data-arg');
-        handleAction(action, arg);
-      }
-    }, true);
-
-    // Form Submit Event Listeners
-    document.addEventListener('DOMContentLoaded', () => {
-      const addForm = document.getElementById('add-med-form');
-      if (addForm) addForm.addEventListener('submit', handleAddMedication);
-
-      const skipForm = document.getElementById('skip-form');
-      if (skipForm) skipForm.addEventListener('submit', handleConfirmSkip);
-    });
 
     // Initial Execution
     function initApp() {
       loadSavedData();
-      switchTab('today');
+      window.switchTab('today');
     }
 
     initApp();
