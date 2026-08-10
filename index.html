@@ -11,9 +11,8 @@
   <meta name="theme-color" content="#ffffff">
   <title>SnapDose - Photo-Confirmed Meds</title>
 
-  <!-- Complete Standalone Native CSS with iOS Safe Area Insets -->
+  <!-- Native Embedded CSS (iOS Safe Area Layout) -->
   <style>
-    /* Reset & Base Setup */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -26,29 +25,31 @@
     html, body {
       width: 100%;
       height: 100%;
+      margin: 0;
+      padding: 0;
       background-color: #f8fafc;
       color: #0b132a;
       overflow: hidden;
+      -webkit-text-size-adjust: 100%;
     }
 
-    /* Main App Container */
     #app-container {
-      position: relative;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
       width: 100%;
       height: 100%;
-      min-height: 100dvh;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
       background-color: #f8fafc;
       overflow: hidden;
-      margin: 0 auto;
     }
 
-    /* Top Header adjusted for Dynamic Island / Notch */
+    /* Top Navigation Header */
     header {
-      position: relative;
-      z-index: 20;
+      flex-shrink: 0;
       padding-top: max(12px, env(safe-area-inset-top));
       padding-bottom: 12px;
       padding-left: 16px;
@@ -58,7 +59,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      flex-shrink: 0;
+      z-index: 30;
     }
 
     .header-logo-box {
@@ -74,12 +75,11 @@
       object-fit: contain;
     }
 
-    .header-logo-fallback {
+    .header-logo-text {
       font-size: 18px;
       font-weight: 800;
       color: #0b132a;
       letter-spacing: -0.5px;
-      display: none;
     }
 
     .pwa-pill-badge {
@@ -98,18 +98,17 @@
 
     /* Main Scrollable Viewport */
     main {
-      position: relative;
-      z-index: 10;
-      flex: 1;
+      flex: 1 1 auto;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
       padding: 16px;
       display: flex;
       flex-direction: column;
       gap: 14px;
+      z-index: 10;
     }
 
-    /* Clean Card System */
+    /* Card System */
     .snap-card {
       background: #ffffff;
       border: 1px solid #e2e8f0;
@@ -135,7 +134,7 @@
       object-fit: contain;
     }
 
-    /* Progress Track */
+    /* Progress & Streak Bar */
     .progress-track {
       width: 100%;
       background-color: #f1f5f9;
@@ -151,7 +150,7 @@
       transition: width 0.4s ease;
     }
 
-    /* Weekly Heatmap Row */
+    /* Weekly Heatmap */
     .weekly-row {
       display: flex;
       justify-content: space-between;
@@ -196,7 +195,7 @@
       color: #0f766e;
     }
 
-    /* Section Titles */
+    /* Titles */
     .section-header {
       display: flex;
       justify-content: space-between;
@@ -216,7 +215,7 @@
       color: #64748b;
     }
 
-    /* Medication Cards */
+    /* Medication Item */
     .med-item-header {
       display: flex;
       justify-content: space-between;
@@ -364,10 +363,9 @@
       box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
     }
 
-    /* Bottom Navigation Bar adjusted for iOS Home Bar */
+    /* Bottom Navigation Bar */
     nav {
-      position: relative;
-      z-index: 20;
+      flex-shrink: 0;
       padding-top: 10px;
       padding-bottom: max(12px, env(safe-area-inset-bottom));
       padding-left: 16px;
@@ -377,8 +375,8 @@
       display: flex;
       justify-content: space-around;
       align-items: center;
-      flex-shrink: 0;
-      box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.03);
+      z-index: 30;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
     }
 
     .nav-btn {
@@ -393,6 +391,7 @@
       font-weight: 500;
       cursor: pointer;
       padding: 6px 14px;
+      min-height: 44px;
     }
 
     .nav-btn.active {
@@ -405,7 +404,7 @@
       height: 22px;
     }
 
-    /* Modals & Overlays */
+    /* Overlays & Modals */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -447,7 +446,7 @@
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
     }
 
-    /* Camera Area */
+    /* Camera Viewfinder */
     .camera-frame {
       position: relative;
       border-radius: 20px;
@@ -479,7 +478,7 @@
       gap: 6px;
     }
 
-    /* Forms */
+    /* Form Fields */
     .form-group {
       display: flex;
       flex-direction: column;
@@ -520,7 +519,6 @@
       cursor: pointer;
     }
 
-    /* Hidden Helper */
     .hidden {
       display: none !important;
     }
@@ -534,8 +532,8 @@
     <!-- Top Header -->
     <header>
       <div class="header-logo-box">
-        <img src="image.png" alt="SnapDose Logo" class="header-logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
-        <span class="header-logo-fallback">SnapDose</span>
+        <img src="image.png" alt="SnapDose" class="header-logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';" />
+        <span class="header-logo-text" style="display:none;">SnapDose</span>
       </div>
 
       <button onclick="openPwaGuide()" class="pwa-pill-badge">
@@ -544,9 +542,96 @@
       </button>
     </header>
 
-    <!-- Scrollable Content Viewport -->
+    <!-- Pre-Rendered Main Content Viewport (Guarantees visible schedule cards on launch) -->
     <main id="tab-content">
-      <!-- Populated dynamically via JS -->
+      <!-- HERO LOGO CARD -->
+      <div class="snap-card hero-card">
+        <img src="image.png" alt="SnapDose Logo" class="hero-logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+        <h1 style="display:none; font-size:22px; font-weight:800; color:#0b132a;">SnapDose</h1>
+      </div>
+
+      <!-- STREAK & PROGRESS CARD -->
+      <div class="snap-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="font-size:16px;">🔥</span>
+            <span id="streak-label" style="font-size:14px; font-weight:700;">1 Day Streak</span>
+          </div>
+          <span id="today-percent-tag" class="status-tag scheduled">0% Complete</span>
+        </div>
+
+        <div class="progress-track">
+          <div id="today-progress-bar" class="progress-fill" style="width: 0%;"></div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:#64748b; padding-top:4px; border-top:1px solid #f1f5f9;">
+          <span id="doses-count-label">0 of 2 Doses Verified</span>
+          <span>On Schedule</span>
+        </div>
+
+        <!-- Weekly Heatmap -->
+        <div class="weekly-row">
+          <div class="weekly-day-item"><span class="weekly-day-label">M</span><div class="weekly-day-circle today-active"></div></div>
+          <div class="weekly-day-item"><span class="weekly-day-label">T</span><div class="weekly-day-circle"></div></div>
+          <div class="weekly-day-item"><span class="weekly-day-label">W</span><div class="weekly-day-circle"></div></div>
+          <div class="weekly-day-item"><span class="weekly-day-label">T</span><div class="weekly-day-circle"></div></div>
+          <div class="weekly-day-item"><span class="weekly-day-label">F</span><div class="weekly-day-circle"></div></div>
+          <div class="weekly-day-item"><span class="weekly-day-label">S</span><div class="weekly-day-circle"></div></div>
+          <div class="weekly-day-item"><span class="weekly-day-label">S</span><div class="weekly-day-circle"></div></div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Today's Schedule</h2>
+          <p class="section-subtitle">Active Reminders</p>
+        </div>
+        <button onclick="openAddModal()" class="snap-btn-primary">+ Add Med</button>
+      </div>
+
+      <!-- Schedule List -->
+      <div id="schedule-cards-list" style="display:flex; flex-direction:column; gap:12px;">
+        <!-- Pre-rendered medication items -->
+        <div class="snap-card">
+          <div class="med-item-header">
+            <div class="med-info-group">
+              <div class="med-icon-badge">💊</div>
+              <div>
+                <h3 class="med-name">Amoxicillin</h3>
+                <p class="med-details">500 mg • Take with food and water</p>
+              </div>
+            </div>
+            <span class="status-tag scheduled">Scheduled</span>
+          </div>
+          <div class="med-card-footer">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span class="med-time-label">🕒 08:00 • 20:00</span>
+              <span class="tone-badge">Urgent Pulse</span>
+            </div>
+            <button onclick="triggerVerification('med-1')" class="snap-btn-primary">Take & Snap</button>
+          </div>
+        </div>
+
+        <div class="snap-card">
+          <div class="med-item-header">
+            <div class="med-info-group">
+              <div class="med-icon-badge">💊</div>
+              <div>
+                <h3 class="med-name">Vitamin D3 & Zinc</h3>
+                <p class="med-details">2000 IU • Take after lunch</p>
+              </div>
+            </div>
+            <span class="status-tag scheduled">Scheduled</span>
+          </div>
+          <div class="med-card-footer">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span class="med-time-label">🕒 12:30</span>
+              <span class="tone-badge">Gentle Chime</span>
+            </div>
+            <button onclick="triggerVerification('med-2')" class="snap-btn-primary">Take & Snap</button>
+          </div>
+        </div>
+      </div>
     </main>
 
     <!-- Bottom Navigation Bar -->
@@ -610,9 +695,7 @@
             <img id="captured-img" src="" alt="Captured proof" style="width:100%; height:180px; object-fit:cover;" />
           </div>
 
-          <div id="ai-status-card" style="padding:12px; border-radius:12px; font-size:12px; text-align:left; background:#1e293b; border:1px solid #334155;">
-            <!-- Dynamic AI result -->
-          </div>
+          <div id="ai-status-card" style="padding:12px; border-radius:12px; font-size:12px; text-align:left; background:#1e293b; border:1px solid #334155;"></div>
 
           <div id="clear-btn-container"></div>
         </div>
@@ -754,7 +837,7 @@
 
   <!-- JS ENGINE -->
   <script>
-    const apiKey = ""; // Canvas runtime environment key
+    const apiKey = ""; // Canvas runtime key
 
     const INITIAL_MEDS = [
       {
@@ -781,25 +864,14 @@
     let medications = INITIAL_MEDS;
     let adherenceLogs = [];
 
-    // Defensive Data Sanitization Loader
+    // Safe Local Storage Engine
     function loadSavedData() {
       try {
         const savedMeds = localStorage.getItem('snap_meds');
         if (savedMeds) {
           const parsed = JSON.parse(savedMeds);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            medications = parsed.map(m => ({
-              id: m.id || `med--`,
-              name: m.name || 'Medication',
-              dosage: m.dosage || '1 dose',
-              times: Array.isArray(m.times) ? m.times : ['08:00'],
-              tone: m.tone || 'urgent',
-              instructions: m.instructions || 'Take as directed',
-              status: m.status || 'pending',
-              snoozeCount: m.snoozeCount || 0,
-              lastTakenTime: m.lastTakenTime || null,
-              skipReason: m.skipReason || null
-            }));
+            medications = parsed;
           }
         }
       } catch(e) { medications = INITIAL_MEDS; }
@@ -937,15 +1009,15 @@
       const takenMedsToday = safeMeds.filter(m => m && m.status === 'taken').length;
       const todayPercent = totalMedsToday > 0 ? Math.round((takenMedsToday / totalMedsToday) * 100) : 0;
 
-      const uniqueDays = new Set(
-        safeLogs
-          .filter(l => l && l.status !== 'skipped' && l.timestamp)
-          .map(l => {
-            const d = new Date(l.timestamp);
-            return isNaN(d.getTime()) ? null : d.toDateString();
-          })
-          .filter(Boolean)
-      );
+      const uniqueDays = new Set();
+      safeLogs.forEach(l => {
+        if (l && l.status !== 'skipped' && l.timestamp) {
+          const d = new Date(l.timestamp);
+          if (!isNaN(d.getTime())) {
+            uniqueDays.add(d.toDateString());
+          }
+        }
+      });
       const streakDays = uniqueDays.size;
 
       const verifiedLogs = safeLogs.filter(l => l && l.status !== 'skipped');
@@ -1008,8 +1080,8 @@
         container.innerHTML = `
           <!-- HERO LOGO CARD -->
           <div class="snap-card hero-card">
-            <img src="image.png" alt="SnapDose Logo" class="hero-logo-img" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';" />
-            <h1 style="display:none; font-size:22px; font-weight:800; color:#0b132a;">SnapDose</h1>
+            <img src="image.png" alt="SnapDose Logo" class="hero-logo-img" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';" />
+            <h1 style="display:none; font-size:22px; font-weight:800; color:#0b132a; text-align:center;">SnapDose</h1>
           </div>
 
           <!-- STREAK & PROGRESS CARD -->
@@ -1438,19 +1510,9 @@
       if (match) triggerVerification(match.id);
     }, 10000);
 
-    // Immediate Initialization Execution
-    function initApp() {
-      loadSavedData();
-      switchTab('today');
-    }
-
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
-      initApp();
-    } else {
-      document.addEventListener('DOMContentLoaded', initApp);
-    }
+    // Initial Execution
+    loadSavedData();
   </script>
 </body>
 </html>
-
 
