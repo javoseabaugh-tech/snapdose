@@ -4,1523 +4,575 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   
-  <!-- Apple iOS PWA & Home Screen Icon Tags -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="SnapDose">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#f8fafc">
   
   <link rel="apple-touch-icon" href="image.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="image.png">
-  <link rel="icon" type="image/png" href="image.png">
+  
+  <title>SnapDose</title>
 
-  <title>SnapDose - Photo-Confirmed Meds</title>
-
-  <!-- iOS Safari Native Touch & Flex Layout Styles -->
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
-    }
-
-    html, body {
-      width: 100%;
-      min-height: 100%;
-      height: 100dvh;
+    /* Standard Native Scrolling Layout (No Viewport Traps) */
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; -webkit-tap-highlight-color: transparent; }
+    
+    body {
+      margin: 0; padding: 0;
       background-color: #f8fafc;
       color: #0b132a;
-      overflow-x: hidden;
+      /* Add padding to bottom so content isn't hidden behind the fixed nav bar */
+      padding-bottom: max(90px, env(safe-area-inset-bottom) + 80px); 
       -webkit-text-size-adjust: 100%;
     }
 
-    /* Fluid Flex Shell for Native iOS Compatibility */
-    #app-container {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      background-color: #f8fafc;
-      margin: 0 auto;
-    }
-
-    /* Top Navigation Header */
+    /* Header stays at the top of the document */
     header {
-      flex-shrink: 0;
-      padding-top: max(12px, env(safe-area-inset-top));
-      padding-bottom: 10px;
-      padding-left: 16px;
-      padding-right: 16px;
+      padding-top: max(16px, env(safe-area-inset-top));
+      padding-bottom: 12px;
+      padding-left: 16px; padding-right: 16px;
       background-color: #ffffff;
       border-bottom: 1px solid #e2e8f0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      z-index: 10;
+      display: flex; justify-content: space-between; align-items: center;
     }
+    .header-logo { max-height: 32px; max-width: 140px; object-fit: contain; }
+    .pwa-btn { padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; background: #f0fdf4; color: #0f766e; border: 1px solid #ccfbf1; display: flex; align-items: center; gap: 4px; border-style: solid; }
 
-    .header-logo-box {
-      height: 32px;
-      display: flex;
-      align-items: center;
-    }
+    /* Main Content Area */
+    main { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
 
-    .header-logo-img {
-      max-height: 32px;
-      width: auto;
-      max-width: 150px;
-      object-fit: contain;
-    }
+    /* Cards */
+    .card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; flex-direction: column; gap: 12px; }
+    .hero-img { max-height: 80px; margin: 0 auto; object-fit: contain; }
+    
+    /* Progress Track */
+    .prog-track { width: 100%; height: 10px; background: #f1f5f9; border-radius: 10px; overflow: hidden; }
+    .prog-fill { height: 100%; background: #0d9488; transition: width 0.3s; }
+    
+    .week-row { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+    .day-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .day-lbl { font-size: 10px; color: #94a3b8; font-weight: 600; }
+    .day-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; background: #f1f5f9; color: transparent; }
+    .day-dot.done { background: #0d9488; color: white; }
+    .day-dot.active { border: 2px solid #0d9488; background: #f0fdf4; color: transparent; }
 
-    .header-logo-fallback {
-      font-size: 18px;
-      font-weight: 800;
-      color: #0b132a;
-      letter-spacing: -0.5px;
-    }
+    /* Text */
+    .title-lg { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
+    .title-sm { font-size: 15px; font-weight: 700; }
+    .text-sm { font-size: 12px; color: #64748b; }
+    
+    /* Tags */
+    .tag { padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+    .tag.sched { background: #f0fdf4; color: #0f766e; border: 1px solid #ccfbf1; }
+    .tag.taken { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+    .tag.skip { background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; }
 
-    .pwa-pill-badge {
-      padding: 6px 12px;
-      border-radius: 9999px;
-      font-size: 11px;
-      font-weight: 600;
-      color: #0f766e;
-      background-color: #f0fdf4;
-      border: 1px solid #ccfbf1;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      cursor: pointer;
-      touch-action: manipulation;
-    }
+    /* Med Items */
+    .med-header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .med-icon { width: 44px; height: 44px; background: #f0fdf4; border: 1px solid #ccfbf1; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-right: 12px; }
+    .med-footer { border-top: 1px solid #f1f5f9; padding-top: 12px; display: flex; justify-content: space-between; align-items: center; }
+    
+    /* Buttons */
+    button { outline: none; touch-action: manipulation; cursor: pointer; }
+    .btn-main { background: #0d9488; color: white; border: none; padding: 12px 18px; border-radius: 14px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 12px rgba(13,148,136,0.3); }
+    .btn-main:active { opacity: 0.8; transform: scale(0.98); }
+    .btn-sec { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 12px 16px; border-radius: 14px; font-weight: 700; font-size: 13px; }
+    .btn-danger { background: #ef4444; color: white; border: none; padding: 12px 16px; border-radius: 14px; font-weight: 700; font-size: 13px; }
 
-    /* Main Scrollable Viewport */
-    main {
-      flex: 1 1 auto;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      padding: 16px;
-      padding-bottom: 28px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    /* Clean Card System */
-    .snap-card {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 18px;
-      padding: 14px 16px;
-      box-shadow: 0 4px 16px -2px rgba(11, 19, 42, 0.04);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      flex-shrink: 0;
-    }
-
-    /* Progress & Streak Bar */
-    .progress-track {
-      width: 100%;
-      background-color: #f1f5f9;
-      height: 10px;
-      border-radius: 9999px;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      background-color: #0d9488;
-      height: 100%;
-      border-radius: 9999px;
-      transition: width 0.4s ease;
-    }
-
-    /* Weekly Heatmap */
-    .weekly-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-top: 4px;
-    }
-
-    .weekly-day-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .weekly-day-label {
-      font-size: 10px;
-      font-weight: 500;
-      color: #94a3b8;
-    }
-
-    .weekly-day-circle {
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 10px;
-      font-weight: 700;
-      background-color: #f1f5f9;
-      color: #94a3b8;
-    }
-
-    .weekly-day-circle.complete {
-      background-color: #0d9488;
-      color: #ffffff;
-    }
-
-    .weekly-day-circle.today-active {
-      border: 2px solid #0d9488;
-      background-color: #f0fdf4;
-      color: #0f766e;
-    }
-
-    /* Section Titles */
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      margin-top: 4px;
-    }
-
-    .section-title {
-      font-size: 16px;
-      font-weight: 700;
-      color: #0b132a;
-      letter-spacing: -0.3px;
-    }
-
-    .section-subtitle {
-      font-size: 12px;
-      color: #64748b;
-    }
-
-    /* Medication Item */
-    .med-item-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-    }
-
-    .med-info-group {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .med-icon-badge {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      background-color: #f0fdf4;
-      border: 1px solid #ccfbf1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-    }
-
-    .med-name {
-      font-size: 14px;
-      font-weight: 700;
-      color: #0b132a;
-    }
-
-    .med-details {
-      font-size: 12px;
-      color: #64748b;
-    }
-
-    .status-tag {
-      padding: 4px 10px;
-      border-radius: 9999px;
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-
-    .status-tag.scheduled, .status-tag.pending {
-      background-color: #f0fdf4;
-      color: #0f766e;
-      border: 1px solid #ccfbf1;
-    }
-
-    .status-tag.taken {
-      background-color: #ecfdf5;
-      color: #047857;
-      border: 1px solid #a7f3d0;
-    }
-
-    .status-tag.skipped {
-      background-color: #fff1f2;
-      color: #be123c;
-      border: 1px solid #fecdd3;
-    }
-
-    .status-tag.snoozed {
-      background-color: #fffbeb;
-      color: #b45309;
-      border: 1px solid #fde68a;
-    }
-
-    .med-card-footer {
-      padding-top: 8px;
-      border-top: 1px solid #f1f5f9;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .med-time-label {
-      font-size: 12px;
-      font-weight: 600;
-      color: #475569;
-    }
-
-    .tone-badge {
-      font-size: 9px;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 9999px;
-      background-color: #f1f5f9;
-      color: #64748b;
-      border: 1px solid #e2e8f0;
-      text-transform: uppercase;
-    }
-
-    /* Buttons & Touch Targets */
-    button, select, input, a, .snap-btn-primary, .snap-btn-secondary, .snap-btn-danger, .snap-btn-success, .nav-btn {
-      cursor: pointer !important;
-      touch-action: manipulation;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-
-    .snap-btn-primary {
-      background-color: #0d9488;
-      color: #ffffff;
-      border: none;
-      border-radius: 12px;
-      padding: 10px 16px;
-      font-size: 13px;
-      font-weight: 700;
-      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
-    }
-
-    .snap-btn-primary:active {
-      background-color: #0f766e;
-      transform: scale(0.97);
-    }
-
-    .snap-btn-secondary {
-      background-color: #f1f5f9;
-      color: #334155;
-      border: 1px solid #cbd5e1;
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .snap-btn-danger {
-      background-color: #ef4444;
-      color: #ffffff;
-      border: none;
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-size: 12px;
-      font-weight: 700;
-      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
-    }
-
-    .snap-btn-success {
-      background-color: #10b981;
-      color: #ffffff;
-      border: none;
-      border-radius: 12px;
-      padding: 12px 16px;
-      font-size: 14px;
-      font-weight: 700;
-      width: 100%;
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
-    }
-
-    /* Bottom Navigation Bar */
+    /* Fixed Bottom Navigation */
     nav {
-      flex-shrink: 0;
-      padding-top: 10px;
-      padding-bottom: max(14px, env(safe-area-inset-bottom));
-      padding-left: 16px;
-      padding-right: 16px;
-      background-color: #ffffff;
-      border-top: 1px solid #e2e8f0;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      z-index: 10;
-      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: white; border-top: 1px solid #e2e8f0;
+      display: flex; justify-content: space-around; align-items: center;
+      padding-top: 12px; padding-bottom: max(16px, env(safe-area-inset-bottom));
+      z-index: 50; box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
     }
+    .nav-btn { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 4px; color: #94a3b8; font-size: 11px; font-weight: 600; width: 60px; }
+    .nav-btn.active { color: #0d9488; font-weight: 800; }
+    .nav-btn svg { width: 24px; height: 24px; }
 
-    .nav-btn {
-      background: none;
-      border: none;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      color: #94a3b8;
-      font-size: 11px;
-      font-weight: 500;
-      padding: 6px 14px;
-      min-height: 48px;
+    /* Bulletproof Modals (Hidden completely using display: none) */
+    .modal-wrap {
+      position: fixed; top: 0; bottom: 0; left: 0; right: 0;
+      background: rgba(15,23,42,0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      z-index: 100; display: none; justify-content: center; align-items: center; padding: 20px;
     }
-
-    .nav-btn.active {
-      color: #0d9488;
-      font-weight: 700;
+    .modal-box {
+      background: white; width: 100%; max-width: 400px; border-radius: 24px; padding: 24px;
+      display: flex; flex-direction: column; gap: 16px; max-height: 90vh; overflow-y: auto;
     }
-
-    .nav-btn svg, .nav-btn span {
-      pointer-events: none;
-    }
-
-    /* Modals & Overlays (Guaranteed non-blocking when hidden) */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 100;
-      background-color: rgba(11, 19, 42, 0.94);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      padding: max(20px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom)) 20px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      overflow-y: auto;
-      color: #ffffff;
-    }
-
-    .modal-dialog {
-      position: fixed;
-      inset: 0;
-      z-index: 100;
-      background-color: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      padding: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .modal-content {
-      background: #ffffff;
-      color: #0b132a;
-      border-radius: 24px;
-      padding: 22px;
-      width: 100%;
-      max-width: 360px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
-    }
-
-    .camera-frame {
-      position: relative;
-      border-radius: 20px;
-      overflow: hidden;
-      border: 2px solid rgba(13, 148, 136, 0.8);
-      background-color: #000000;
-      aspect-ratio: 4/3;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .camera-video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .camera-aperture-overlay {
-      position: absolute;
-      inset: 12px;
-      border: 2px dashed rgba(45, 212, 191, 0.6);
-      border-radius: 16px;
-      pointer-events: none;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-
-    .form-label {
-      font-size: 11px;
-      font-weight: 600;
-      color: #475569;
-    }
-
-    .form-input, .form-select {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid #cbd5e1;
-      background-color: #f8fafc;
-      font-size: 13px;
-      color: #0b132a;
-      outline: none;
-    }
-
-    .snooze-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-    }
-
-    .snooze-btn {
-      padding: 8px 0;
-      border-radius: 10px;
-      background-color: #1e293b;
-      color: #e2e8f0;
-      border: 1px solid #334155;
-      font-size: 11px;
-      font-weight: 600;
-    }
-
-    .hidden {
-      display: none !important;
-      pointer-events: none !important;
-    }
+    
+    .input-box { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #cbd5e1; background: #f8fafc; font-size: 14px; color: #0b132a; margin-top: 6px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    
+    .cam-box { background: black; border-radius: 16px; aspect-ratio: 4/3; position: relative; overflow: hidden; border: 2px solid #2dd4bf; }
+    video { width: 100%; height: 100%; object-fit: cover; }
   </style>
 </head>
 <body>
 
-  <!-- App Main Shell -->
-  <div id="app-container">
-    
-    <!-- Top Header -->
-    <header>
-      <div class="header-logo-box">
-        <img src="image.png" alt="SnapDose Logo" class="header-logo-img" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline-block';" />
-        <span class="header-logo-fallback" style="display:none;">SnapDose</span>
+  <!-- Top Header -->
+  <header>
+    <div class="header-logo-box">
+      <img src="image.png" alt="SnapDose" class="header-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+      <span class="title-lg" style="display:none;">SnapDose</span>
+    </div>
+    <button onclick="window.showModal('modal-pwa')" class="pwa-btn">
+      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+      <span>iOS PWA</span>
+    </button>
+  </header>
+
+  <!-- Content flows naturally down the page -->
+  <main id="main-view">
+    <!-- Populated by Javascript -->
+  </main>
+
+  <!-- Fixed Bottom Navigation -->
+  <nav>
+    <button onclick="window.switchTab('today')" id="tab-today" class="nav-btn active">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+      <span>Today</span>
+    </button>
+    <button onclick="window.switchTab('meds')" id="tab-meds" class="nav-btn">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+      <span>Roster</span>
+    </button>
+    <button onclick="window.switchTab('audit')" id="tab-audit" class="nav-btn">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+      <span>Audit Log</span>
+    </button>
+    <button onclick="window.switchTab('settings')" id="tab-settings" class="nav-btn">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-.826 3.31-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path></svg>
+      <span>Settings</span>
+    </button>
+  </nav>
+
+  <!-- Add Medication Modal -->
+  <div id="modal-add" class="modal-wrap">
+    <div class="modal-box">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span class="title-sm">Add Medication</span>
+        <button onclick="window.hideModal('modal-add')" style="background:none;border:none;font-size:20px;color:#94a3b8;">✕</button>
       </div>
-
-      <button id="btn-pwa-badge" class="pwa-pill-badge">
-        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-        <span>iOS PWA</span>
-      </button>
-    </header>
-
-    <!-- Scrollable Main Viewport -->
-    <main id="tab-content">
-      <!-- Content rendered cleanly by JS engine -->
-    </main>
-
-    <!-- Bottom Navigation Bar -->
-    <nav>
-      <button id="nav-today" class="nav-btn active">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-        <span>Today</span>
-      </button>
-
-      <button id="nav-meds" class="nav-btn">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
-        <span>Roster</span>
-      </button>
-
-      <button id="nav-audit" class="nav-btn">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-        <span>Audit Log</span>
-      </button>
-
-      <button id="nav-settings" class="nav-btn">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-.826 3.31-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-        <span>Settings</span>
-      </button>
-    </nav>
-
-    <!-- FULL SCREEN CAMERA VERIFICATION & ALARM OVERLAY -->
-    <div id="alarm-overlay" class="modal-overlay hidden">
-      <div style="text-align:center; display:flex; flex-direction:column; gap:6px; margin-top:8px;">
-        <div style="width:56px; height:56px; margin:0 auto; background:#ffffff; border-radius:16px; padding:6px; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
-          <img src="image.png" alt="SnapDose Logo" style="width:100%; height:100%; object-fit:contain;" />
-        </div>
-        <h2 style="font-size:20px; font-weight:800;">Time for Medication</h2>
-        <p id="alarm-med-title" style="font-size:14px; font-weight:600; color:#5eead4;">Amoxicillin (500mg)</p>
-        <div style="display:flex; justify-content:center; align-items:center; gap:8px;">
-          <p id="alarm-med-instructions" style="font-size:12px; color:#cbd5e1;">Take with food and water</p>
-          <span id="alarm-tone-badge" style="font-size:9px; padding:2px 8px; border-radius:9999px; background:rgba(13,148,136,0.3); color:#2dd4bf; border:1px solid rgba(45,212,191,0.3); font-weight:700;">URGENT PULSE</span>
-        </div>
+      <div>
+        <label class="day-lbl">Medication Name</label>
+        <input type="text" id="add-name" class="input-box" placeholder="e.g. Amoxicillin" />
       </div>
-
-      <div style="margin: auto 0; display:flex; flex-direction:column; gap:12px;">
-        <!-- Live Camera View -->
-        <div id="camera-box" class="hidden" style="display:flex; flex-direction:column; gap:12px;">
-          <div class="camera-frame">
-            <video id="webcam-video" class="camera-video" playsinline autoplay muted></video>
-            <div class="camera-aperture-overlay">
-              <div style="width:36px; height:36px; border-radius:50%; border:2px solid #2dd4bf; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.5);">
-                <svg style="width:18px;height:18px;color:#2dd4bf;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4m12.707-4.707L7.293 16.707m0-9.414l9.414 9.414"></path></svg>
-              </div>
-              <span style="font-size:10px; background:rgba(0,0,0,0.7); padding:2px 10px; border-radius:9999px; color:#a7f3d0;">Hold Pill on Palm for AI Check</span>
-            </div>
-          </div>
-
-          <button id="btn-snap-photo" class="snap-btn-primary" style="padding:14px; font-size:14px; width:100%;">
-            📸 Snap Verification Photo
-          </button>
-        </div>
-
-        <!-- Captured Image & AI Review -->
-        <div id="review-box" class="hidden" style="display:flex; flex-direction:column; gap:12px; text-align:center;">
-          <div style="border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.2); max-height:180px;">
-            <img id="captured-img" src="" alt="Captured proof" style="width:100%; height:180px; object-fit:cover;" />
-          </div>
-
-          <div id="ai-status-card" style="padding:12px; border-radius:12px; font-size:12px; text-align:left; background:#1e293b; border:1px solid #334155;"></div>
-
-          <div id="clear-btn-container"></div>
-        </div>
-
-        <!-- Start Camera Button -->
-        <div id="start-camera-box">
-          <button id="btn-open-camera" class="snap-btn-primary" style="padding:14px; font-size:14px; width:100%;">
-            📷 Open Camera to Verify
-          </button>
+      <div>
+        <label class="day-lbl">Dosage</label>
+        <input type="text" id="add-dose" class="input-box" placeholder="e.g. 500 mg" />
+      </div>
+      <div>
+        <label class="day-lbl">Time</label>
+        <input type="time" id="add-time" class="input-box" value="08:00" />
+      </div>
+      <div>
+        <label class="day-lbl">Alarm Tone</label>
+        <div style="display:flex; gap:8px; margin-top:6px;">
+          <select id="add-tone" class="input-box" style="margin-top:0;">
+            <option value="urgent">Urgent Pulse</option>
+            <option value="gentle">Gentle Chime</option>
+            <option value="siren">Escalating Siren</option>
+          </select>
+          <button onclick="window.testSelectedTone()" class="btn-sec">🔊</button>
         </div>
       </div>
-
-      <!-- Snooze Options & Emergency Skip -->
-      <div style="display:flex; flex-direction:column; gap:10px;">
-        <div style="display:flex; flex-direction:column; gap:4px;">
-          <p style="font-size:11px; text-align:center; color:#cbd5e1;">Need more time? Snooze reminder:</p>
-          <div class="snooze-grid">
-            <button class="snooze-btn" data-mins="5">+5m</button>
-            <button class="snooze-btn" data-mins="15">+15m</button>
-            <button class="snooze-btn" data-mins="30">+30m</button>
-            <button class="snooze-btn" data-mins="60">+1h</button>
-          </div>
-        </div>
-
-        <div style="text-align:center; padding-top:6px; border-top:1px solid #1e293b;">
-          <button id="btn-open-skip" style="background:none; border:none; color:#fca5a5; font-size:11px; font-weight:600; text-decoration:underline;">
-            ⚠️ Unable to take pill? Emergency Skip
-          </button>
-        </div>
+      <div>
+        <label class="day-lbl">Instructions</label>
+        <input type="text" id="add-inst" class="input-box" placeholder="Take with food" />
+      </div>
+      <div class="grid-2" style="margin-top:8px;">
+        <button onclick="window.hideModal('modal-add')" class="btn-sec">Cancel</button>
+        <button onclick="window.saveMedication()" class="btn-main">Save Med</button>
       </div>
     </div>
-
-    <!-- EMERGENCY SKIP MODAL -->
-    <div id="skip-modal" class="modal-dialog hidden">
-      <div class="modal-content">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
-          <h3 style="font-size:15px; font-weight:700; color:#be123c;">Skip Dose Override</h3>
-          <button id="btn-close-skip-x" style="background:none; border:none; color:#94a3b8; font-size:16px;">✕</button>
-        </div>
-
-        <p style="font-size:12px; color:#64748b; line-height:1.4;">
-          Please log the reason you cannot take this dose. This action disarms the alarm and records an entry in your audit history.
-        </p>
-
-        <form id="skip-form" style="display:flex; flex-direction:column; gap:12px;">
-          <div class="form-group">
-            <label class="form-label">Reason for Skipping</label>
-            <select id="skip-reason-select" required class="form-select">
-              <option value="Lost or dropped pill">Pill Lost or Dropped</option>
-              <option value="Doctor/Pharmacist advised skip">Doctor / Pharmacist Advised Skip</option>
-              <option value="Feeling ill or nauseous">Feeling Ill / Nausea</option>
-              <option value="Out of stock / Empty bottle">Out of Stock / Empty Bottle</option>
-              <option value="Other reason">Other Reason</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Additional Notes (Optional)</label>
-            <input type="text" id="skip-notes-input" placeholder="e.g. Dropped in sink" class="form-input">
-          </div>
-
-          <div style="padding:10px; border-radius:10px; background:#fffbeb; border:1px solid #fde68a; color:#92400e; font-size:11px; line-height:1.3;">
-            ℹ️ If you are unsure whether it is safe to skip a prescribed dose, please contact your doctor or pharmacist.
-          </div>
-
-          <div style="display:flex; gap:8px; padding-top:4px;">
-            <button type="button" id="btn-close-skip-cancel" class="snap-btn-secondary" style="width:50%;">Cancel</button>
-            <button type="submit" class="snap-btn-danger" style="width:50%;">Confirm Skip</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- ADD MEDICATION MODAL -->
-    <div id="add-modal" class="modal-dialog hidden">
-      <div class="modal-content">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
-          <h3 style="font-size:15px; font-weight:700;">Add Medication</h3>
-          <button id="btn-close-add-x" style="background:none; border:none; color:#94a3b8; font-size:16px;">✕</button>
-        </div>
-
-        <form id="add-med-form" style="display:flex; flex-direction:column; gap:10px;">
-          <div class="form-group">
-            <label class="form-label">Medication Name</label>
-            <input type="text" id="input-name" required placeholder="e.g. Amoxicillin" class="form-input">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Dosage</label>
-            <input type="text" id="input-dosage" required placeholder="e.g. 500 mg" class="form-input">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Reminder Time</label>
-            <input type="time" id="input-time" required value="08:00" class="form-input">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Alarm Sound Tone</label>
-            <div style="display:flex; gap:6px;">
-              <select id="input-tone" class="form-select" style="flex:1;">
-                <option value="urgent">Urgent Pulse (Dual Chime)</option>
-                <option value="gentle">Gentle Chime (Marimba)</option>
-                <option value="siren">Escalating Siren (High Urgency)</option>
-                <option value="classic">Classic Beep (80s Digital)</option>
-              </select>
-              <button type="button" id="btn-test-add-tone" class="snap-btn-secondary" style="padding:8px 12px;">🔊 Test</button>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Instructions (Optional)</label>
-            <input type="text" id="input-instructions" placeholder="e.g. Take with food" class="form-input">
-          </div>
-
-          <div style="display:flex; gap:8px; padding-top:6px;">
-            <button type="button" id="btn-close-add-cancel" class="snap-btn-secondary" style="width:50%;">Cancel</button>
-            <button type="submit" class="snap-btn-primary" style="width:50%;">Save Schedule</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- PWA GUIDE MODAL -->
-    <div id="pwa-modal" class="modal-dialog hidden">
-      <div class="modal-content">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <h3 style="font-size:15px; font-weight:700;">Install SnapDose on iPhone</h3>
-          <button id="btn-close-pwa-x" style="background:none; border:none; color:#94a3b8; font-size:16px;">✕</button>
-        </div>
-        <p style="font-size:12px; color:#64748b; line-height:1.4;">Host on GitHub Pages or Firebase and launch like a native iOS App:</p>
-        <ol style="font-size:12px; color:#475569; padding-left:18px; display:flex; flex-direction:column; gap:6px;">
-          <li>Open in <strong>Safari</strong> on iPhone.</li>
-          <li>Tap the <strong>Share button</strong> (square with arrow up).</li>
-          <li>Select <strong>'Add to Home Screen'</strong>.</li>
-          <li>Open directly from your home screen!</li>
-        </ol>
-        <button id="btn-close-pwa-ok" class="snap-btn-primary" style="width:100%; padding:10px;">Got It</button>
-      </div>
-    </div>
-
   </div>
 
-  <!-- JS ENGINE -->
-  <script>
-    const apiKey = ""; // Canvas runtime key
+  <!-- Alarm / Camera Modal -->
+  <div id="modal-alarm" class="modal-wrap" style="align-items: flex-start; padding-top: max(40px, env(safe-area-inset-top));">
+    <div class="modal-box" style="margin: 0 auto;">
+      <div style="text-align:center;">
+        <span class="tag sched" id="alarm-tone-tag">URGENT</span>
+        <h2 class="title-lg" style="margin-top:12px; color:#0b132a;">Time for Medication</h2>
+        <p id="alarm-med-title" class="title-sm" style="color:#0d9488; margin-top:4px;">Pill Name</p>
+        <p id="alarm-med-inst" class="text-sm" style="margin-top:4px;">Instructions here</p>
+      </div>
 
-    const DEFAULT_MEDS = [
-      {
-        id: 'med-1',
-        name: 'Amoxicillin',
-        dosage: '500 mg',
-        times: ['08:00', '20:00'],
-        tone: 'urgent',
-        instructions: 'Take with food and full glass of water',
-        status: 'pending'
-      },
-      {
-        id: 'med-2',
-        name: 'Vitamin D3 & Zinc',
-        dosage: '2000 IU',
-        times: ['12:30'],
-        tone: 'gentle',
-        instructions: 'Take after lunch',
-        status: 'pending'
-      }
+      <div id="box-cam-init">
+        <button onclick="window.startCamera()" class="btn-main" style="width:100%;">📷 Open Camera to Verify</button>
+      </div>
+
+      <div id="box-cam-live" style="display:none; flex-direction:column; gap:12px;">
+        <div class="cam-box">
+          <video id="vid-stream" playsinline autoplay muted></video>
+          <div style="position:absolute; inset:20px; border:2px dashed rgba(45,212,191,0.6); border-radius:16px; pointer-events:none;"></div>
+        </div>
+        <button onclick="window.snapPhoto()" class="btn-main" style="width:100%;">📸 Snap Photo</button>
+      </div>
+
+      <div id="box-cam-review" style="display:none; flex-direction:column; gap:12px;">
+        <img id="img-preview" src="" style="width:100%; border-radius:16px; border:1px solid #e2e8f0; max-height:200px; object-fit:cover;" />
+        <div id="ai-status" style="background:#f1f5f9; padding:12px; border-radius:12px; font-size:12px;">Waiting for AI...</div>
+        <div id="ai-actions"></div>
+      </div>
+
+      <div style="border-top:1px solid #e2e8f0; margin-top:8px; padding-top:16px; text-align:center;">
+        <p class="day-lbl">Need more time? Snooze:</p>
+        <div class="grid-2" style="margin-top:8px;">
+          <button onclick="window.snooze(15)" class="btn-sec">Snooze 15m</button>
+          <button onclick="window.showModal('modal-skip'); window.hideModal('modal-alarm');" style="background:none; border:none; color:#ef4444; font-size:12px; font-weight:700;">Skip / Unable</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Skip Modal -->
+  <div id="modal-skip" class="modal-wrap">
+    <div class="modal-box">
+      <h3 class="title-sm" style="color:#ef4444;">Skip Dose Override</h3>
+      <p class="text-sm">Log your reason for skipping this dose. This disarms the alarm.</p>
+      <select id="skip-reason" class="input-box">
+        <option>Pill Lost or Dropped</option>
+        <option>Feeling Ill / Nausea</option>
+        <option>Empty Bottle</option>
+        <option>Doctor Advised</option>
+      </select>
+      <input type="text" id="skip-note" class="input-box" placeholder="Additional notes..." />
+      <div class="grid-2" style="margin-top:8px;">
+        <button onclick="window.hideModal('modal-skip')" class="btn-sec">Cancel</button>
+        <button onclick="window.confirmSkip()" class="btn-danger">Confirm Skip</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PWA Install Modal -->
+  <div id="modal-pwa" class="modal-wrap">
+    <div class="modal-box">
+      <h3 class="title-sm">Install App on iPhone</h3>
+      <p class="text-sm">1. Tap the <strong>Share</strong> button at the bottom of Safari (the square with the upward arrow).</p>
+      <p class="text-sm">2. Scroll down and tap <strong>Add to Home Screen</strong>.</p>
+      <button onclick="window.hideModal('modal-pwa')" class="btn-main">Got It</button>
+    </div>
+  </div>
+
+  <script>
+    // System Variables
+    const apiKey = ""; // Gemini API Key injected by Canvas
+    const weekLabels = ['M','T','W','T','F','S','S'];
+
+    let activeTab = 'today';
+    let meds = [];
+    let logs = [];
+    let activeMed = null;
+    let stream = null;
+    let photoData = null;
+    let aiData = null;
+
+    // Default Fallback Data
+    const DEF_MEDS = [
+      { id: 'm1', name: 'Amoxicillin', dosage: '500 mg', time: '08:00', tone: 'urgent', inst: 'Take with food', status: 'pending' },
+      { id: 'm2', name: 'Vitamin D3', dosage: '2000 IU', time: '12:30', tone: 'gentle', inst: 'Take after lunch', status: 'pending' }
     ];
 
-    let currentTab = 'today';
-    let medications = DEFAULT_MEDS;
-    let adherenceLogs = [];
-
-    function safeJoinTimes(times, sep = ' • ') {
-      if (Array.isArray(times)) return times.join(sep);
-      if (typeof times === 'string') return times;
-      return '08:00';
+    // Load Data
+    function loadData() {
+      try {
+        const sm = localStorage.getItem('sd_meds');
+        meds = sm ? JSON.parse(sm) : DEF_MEDS;
+        const sl = localStorage.getItem('sd_logs');
+        logs = sl ? JSON.parse(sl) : [];
+      } catch(e) {
+        meds = DEF_MEDS; logs = [];
+      }
+    }
+    
+    function saveData() {
+      localStorage.setItem('sd_meds', JSON.stringify(meds));
+      localStorage.setItem('sd_logs', JSON.stringify(logs));
     }
 
-    function loadSavedData() {
+    // Audio Engine
+    let actx = null;
+    function playTone(type) {
       try {
-        const savedMeds = localStorage.getItem('snap_meds');
-        if (savedMeds) {
-          const parsed = JSON.parse(savedMeds);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            medications = parsed.map(m => {
-              let timesArr = ['08:00'];
-              if (Array.isArray(m.times)) timesArr = m.times;
-              else if (typeof m.times === 'string') timesArr = [m.times];
-
-              return {
-                id: m.id || `med--`,
-                name: m.name || 'Medication',
-                dosage: m.dosage || '1 dose',
-                times: timesArr,
-                tone: m.tone || 'urgent',
-                instructions: m.instructions || 'Take as directed',
-                status: m.status || 'pending',
-                snoozeCount: m.snoozeCount || 0,
-                lastTakenTime: m.lastTakenTime || null,
-                skipReason: m.skipReason || null
-              };
-            });
-          } else {
-            medications = DEFAULT_MEDS;
-          }
-        }
-      } catch(e) { 
-        medications = DEFAULT_MEDS; 
-      }
-
-      try {
-        const savedLogs = localStorage.getItem('snap_logs');
-        if (savedLogs) {
-          const parsed = JSON.parse(savedLogs);
-          if (Array.isArray(parsed)) adherenceLogs = parsed;
-        }
-      } catch(e) { adherenceLogs = []; }
-    }
-
-    let activeAlarmMed = null;
-    let activeCameraStream = null;
-    let currentCapturedBase64 = null;
-    let currentAiResult = null;
-
-    // Web Audio Multi-Tone Synth
-    class AudioAlarmSynth {
-      constructor() {
-        this.ctx = null;
-        this.interval = null;
-        this.isPlaying = false;
-        this.currentTone = 'urgent';
-      }
-
-      start(tone = 'urgent') {
-        this.currentTone = tone;
-        if (this.isPlaying) this.stop();
+        if(!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+        if(actx.state === 'suspended') actx.resume();
+        const osc = actx.createOscillator();
+        const gn = actx.createGain();
+        osc.connect(gn); gn.connect(actx.destination);
+        const t = actx.currentTime;
         
-        try {
-          const AudioContext = window.AudioContext || window.webkitAudioContext;
-          if (!AudioContext) return;
-          this.ctx = new AudioContext();
-          this.isPlaying = true;
-          let step = 0;
-
-          const playToneStep = () => {
-            if (!this.isPlaying || !this.ctx) return;
-            const now = this.ctx.currentTime;
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-
-            switch(this.currentTone) {
-              case 'gentle':
-                const gentleFreqs = [440, 554.37, 659.25];
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(gentleFreqs[step % gentleFreqs.length], now);
-                gain.gain.setValueAtTime(0, now);
-                gain.gain.linearRampToValueAtTime(0.18, now + 0.08);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start(now);
-                osc.stop(now + 0.65);
-                break;
-
-              case 'siren':
-                osc.type = 'sawtooth';
-                const baseFreq = 500 + (step % 6) * 120;
-                osc.frequency.setValueAtTime(baseFreq, now);
-                osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.6, now + 0.25);
-                gain.gain.setValueAtTime(0, now);
-                gain.gain.linearRampToValueAtTime(0.15, now + 0.04);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start(now);
-                osc.stop(now + 0.32);
-                break;
-
-              case 'classic':
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(2093, now);
-                gain.gain.setValueAtTime(0, now);
-                gain.gain.linearRampToValueAtTime(0.08, now + 0.02);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start(now);
-                osc.stop(now + 0.14);
-                break;
-
-              case 'urgent':
-              default:
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime((step % 2 === 0) ? 880 : 1046.5, now);
-                gain.gain.setValueAtTime(0, now);
-                gain.gain.linearRampToValueAtTime(0.28, now + 0.05);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start(now);
-                osc.stop(now + 0.45);
-                break;
-            }
-            step++;
-          };
-
-          const intervalTime = this.currentTone === 'classic' ? 250 : (this.currentTone === 'gentle' ? 700 : 500);
-          this.interval = setInterval(playToneStep, intervalTime);
-        } catch(e) {}
-      }
-
-      stop() {
-        this.isPlaying = false;
-        if (this.interval) clearInterval(this.interval);
-        if (this.ctx) {
-          try { this.ctx.close(); } catch(e){}
-          this.ctx = null;
+        if(type === 'gentle') {
+          osc.type = 'sine'; osc.frequency.setValueAtTime(554.37, t);
+          gn.gain.setValueAtTime(0, t); gn.gain.linearRampToValueAtTime(0.2, t+0.1); gn.gain.exponentialRampToValueAtTime(0.01, t+0.8);
+          osc.start(t); osc.stop(t+0.9);
+        } else if(type === 'siren') {
+          osc.type = 'sawtooth'; osc.frequency.setValueAtTime(600, t); osc.frequency.linearRampToValueAtTime(1200, t+0.4);
+          gn.gain.setValueAtTime(0, t); gn.gain.linearRampToValueAtTime(0.15, t+0.1); gn.gain.exponentialRampToValueAtTime(0.01, t+0.4);
+          osc.start(t); osc.stop(t+0.5);
+        } else {
+          osc.type = 'sine'; osc.frequency.setValueAtTime(880, t);
+          gn.gain.setValueAtTime(0, t); gn.gain.linearRampToValueAtTime(0.3, t+0.05); gn.gain.exponentialRampToValueAtTime(0.01, t+0.3);
+          osc.start(t); osc.stop(t+0.4);
         }
-      }
-    }
-    const alarmSynth = new AudioAlarmSynth();
-
-    function saveState() {
-      try {
-        localStorage.setItem('snap_meds', JSON.stringify(medications));
-        localStorage.setItem('snap_logs', JSON.stringify(adherenceLogs));
       } catch(e){}
     }
 
-    function calculateAdherenceStats() {
-      const safeMeds = Array.isArray(medications) ? medications : [];
-      const safeLogs = Array.isArray(adherenceLogs) ? adherenceLogs : [];
-
-      const totalMedsToday = safeMeds.length;
-      const takenMedsToday = safeMeds.filter(m => m && m.status === 'taken').length;
-      const todayPercent = totalMedsToday > 0 ? Math.round((takenMedsToday / totalMedsToday) * 100) : 0;
-
-      const uniqueDays = new Set();
-      safeLogs.forEach(l => {
-        if (l && l.status !== 'skipped' && l.timestamp) {
-          const d = new Date(l.timestamp);
-          if (!isNaN(d.getTime())) {
-            uniqueDays.add(d.toDateString());
-          }
-        }
-      });
-      const streakDays = uniqueDays.size;
-
-      const verifiedLogs = safeLogs.filter(l => l && l.status !== 'skipped');
-      const badges = [];
-      if (verifiedLogs.length >= 1) badges.push({ title: 'First Snap Verified', icon: '📸' });
-      if (streakDays >= 3) badges.push({ title: '3-Day Streak', icon: '🔥' });
-      if (streakDays >= 7) badges.push({ title: 'Perfect Week', icon: '🌟' });
-      if (verifiedLogs.length >= 15) badges.push({ title: 'Master Adherer', icon: '🏆' });
-
-      const weekDays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-      const today = new Date();
-      const currentDayIdx = (today.getDay() + 6) % 7;
-      
-      const weeklyHeatmap = weekDays.map((label, idx) => {
-        const isPastOrToday = idx <= currentDayIdx;
-        const isToday = idx === currentDayIdx;
-        let isComplete = false;
-        if (isToday) {
-          isComplete = totalMedsToday > 0 && takenMedsToday === totalMedsToday;
-        } else if (isPastOrToday) {
-          isComplete = streakDays > 0;
-        }
-        return { label, isPastOrToday, isToday, isComplete };
-      });
-
-      return {
-        totalMedsToday,
-        takenMedsToday,
-        todayPercent,
-        streakDays,
-        badges,
-        weeklyHeatmap,
-        totalVerifiedSnaps: verifiedLogs.length
-      };
+    let alarmInt = null;
+    function startAlarm(type) {
+      stopAlarm();
+      playTone(type);
+      alarmInt = setInterval(() => playTone(type), type === 'gentle' ? 1000 : 500);
     }
+    function stopAlarm() { if(alarmInt) clearInterval(alarmInt); }
 
-    function switchTab(tab) {
-      currentTab = tab;
-      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-      const activeBtn = document.getElementById(`nav-`);
-      if (activeBtn) activeBtn.classList.add('active');
-      renderMainContent();
-    }
+    // Navigation & UI Render
+    window.switchTab = function(t) {
+      activeTab = t;
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-'+t).classList.add('active');
+      render();
+    };
 
-    function formatToneName(toneKey) {
-      switch(toneKey) {
-        case 'gentle': return 'Gentle Chime';
-        case 'siren': return 'Escalating Siren';
-        case 'classic': return 'Classic Beep';
-        case 'urgent': default: return 'Urgent Pulse';
-      }
-    }
+    function render() {
+      const v = document.getElementById('main-view');
+      let html = '';
 
-    function renderMainContent() {
-      const container = document.getElementById('tab-content');
-      if (!container) return;
-
-      try {
-        const stats = calculateAdherenceStats();
-
-        if (currentTab === 'today') {
-          container.innerHTML = `
-            <!-- STREAK & PROGRESS CARD -->
-            <div class="snap-card">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div style="display:flex; align-items:center; gap:6px;">
-                  <span style="font-size:16px;">🔥</span>
-                  <span style="font-size:14px; font-weight:700;"> Day Streak</span>
-                </div>
-                <span class="status-tag scheduled">% Complete</span>
-              </div>
-
-              <div class="progress-track">
-                <div class="progress-fill" style="width: %;"></div>
-              </div>
-
-              <div style="display:flex; justify-content:space-between; font-size:11px; color:#64748b; padding-top:4px; border-top:1px solid #f1f5f9;">
-                <span> of  Doses Verified</span>
-                <span>On Schedule</span>
-              </div>
-
-              <!-- Weekly Heatmap -->
-              <div class="weekly-row">
-                </span>
-                    <div class="weekly-day-circle  (d.isToday ? 'today-active' : '')">
-                       ''
-                    </div>
-                  </div>
-                `).join('')}
-              </div>
-            </div>
-
-            <div class="section-header">
-              <div>
-                <h2 class="section-title">Today's Schedule</h2>
-                <p class="section-subtitle"> 'long', month: 'short', day: 'numeric' )}</p>
-              </div>
-              <button id="btn-add-med-today" class="snap-btn-primary">+ Add Med</button>
-            </div>
-
-            <div style="display:flex; flex-direction:column; gap:12px;">
-              center; padding:24px;">
-                  <p style="font-size:13px; color:#64748b;">No medications scheduled.</p>
-                </div>
-              ` : medications.map(med => `
-                <div class="snap-card">
-                  <div class="med-item-header">
-                    <div class="med-info-group">
-                      <div class="med-icon-badge">💊</div>
-                      <div>
-                        <h3 class="med-name"></h3>
-                        <p class="med-details"> • </p>
-                      </div>
-                    </div>
-                    <span class="status-tag "></span>
-                  </div>
-                  <div class="med-card-footer">
-                    <div style="display:flex; align-items:center; gap:6px;">
-                      <span class="med-time-label">🕒 </span>
-                      <span class="tone-badge"></span>
-                    </div>
-                    ${(med.status !== 'taken' && med.status !== 'skipped') ? `
-                      <button class="snap-btn-primary btn-take-snap" data-medid="">Take & Snap</button>
-                    ` : ''
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          `;
-        } else if (currentTab === 'meds') {
-          container.innerHTML = `
-            <div class="section-header">
-              <h2 class="section-title">Medication Roster</h2>
-              <button id="btn-add-med-roster" class="snap-btn-primary">+ Add New</button>
-            </div>
-            <div style="display:flex; flex-direction:column; gap:12px;">
-              row; justify-content:space-between; align-items:center;">
-                  <div>
-                    <h4 class="med-name"></h4>
-                    <p class="med-details"> •  • </p>
-                  </div>
-                  <button class="btn-delete-med" data-medid="" style="background:none; border:none; color:#ef4444; font-size:12px; font-weight:600;">Delete</button>
-                </div>
-              `).join('')
-            </div>
-          `;
-        } else if (currentTab === 'audit') {
-          container.innerHTML = `
-            <div class="section-header">
-              <div>
-                <h2 class="section-title">Audit & Adherence</h2>
-                <p class="section-subtitle">Photo-confirmed history verified by SnapDose AI</p>
-              </div>
-            </div>
-
-            <div class="snap-card">
-              <h3 style="font-size:11px; font-weight:700; text-transform:uppercase; color:#64748b;">Adherence Overview</h3>
-              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; text-align:center;">
-                <div style="padding:12px; background:#f0fdf4; border:1px solid #ccfbf1; border-radius:14px;">
-                  <p style="font-size:22px; font-weight:900; color:#0f766e;"></p>
-                  <p style="font-size:10px; color:#475569;">Verified SnapDoses</p>
-                </div>
-                <div style="padding:12px; background:#f0fdf4; border:1px solid #ccfbf1; border-radius:14px;">
-                  <p style="font-size:22px; font-weight:900; color:#0f766e;"> Days</p>
-                  <p style="font-size:10px; color:#475569;">Current Streak</p>
-                </div>
-              </div>
-
-              <div style="padding-top:8px; border-top:1px solid #f1f5f9;">
-                <p style="font-size:11px; font-weight:600; color:#475569; margin-bottom:6px;">Milestone Badges</p>
-                <div style="display:flex; flex-wrap:wrap; gap:6px;">
-                  11px; color:#94a3b8;">Complete verified doses to earn badges!</span>
-                  ` : stats.badges.map(b => `
-                    <span style="padding:4px 10px; border-radius:10px; font-size:11px; font-weight:600; background:#fffbeb; color:#92400e; border:1px solid #fde68a;">
-                       
-                    </span>
-                  `).join('')
-                </div>
-              </div>
-            </div>
-
-            <div style="display:flex; flex-direction:column; gap:12px;">
-              center; padding:24px;">
-                  <p style="font-size:12px; color:#64748b;">No logs recorded yet.</p>
-                </div>
-              ` : adherenceLogs.map(log => `
-                <div class="snap-card">
-                  <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h4 style="font-size:14px; font-weight:700;"> ()</h4>
-                    <span class="status-tag  'taken'"> 'AI Confirmed'</span>
-                  </div>
-                  <div style="display:flex; gap:12px; align-items:center;">
-                    " style="width:60px; height:60px; object-fit:cover; border-radius:12px; border:1px solid #e2e8f0;" />
-                    ` : `
-                      <div style="width:60px; height:60px; border-radius:12px; background:#fff1f2; border:1px solid #fecdd3; display:flex; align-items:center; justify-content:center; font-size:20px;">⚠️</div>
-                    `
-                    <div style="font-size:12px; display:flex; flex-direction:column; gap:2px;">
-                      <p style="font-weight:600; color:#0b132a;"> ` : (log.aiVerification?.pillDescription || 'Pill in hand confirmed')</p>
-                      <p style="font-size:10px; color:#94a3b8;"></p>
-                    </div>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          `;
-        } else if (currentTab === 'settings') {
-          container.innerHTML = `
-            <h2 class="section-title">Settings & Audio</h2>
-            
-            <div class="snap-card">
-              <h4 style="font-size:13px; font-weight:700;">Alarm Sound Test</h4>
-              <p style="font-size:11px; color:#64748b;">Test Web Audio alarm sound profiles:</p>
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; padding-top:4px;">
-                <button class="snap-btn-secondary btn-test-tone" data-tone="gentle">🔊 Gentle</button>
-                <button class="snap-btn-secondary btn-test-tone" data-tone="urgent">🔊 Urgent</button>
-                <button class="snap-btn-secondary btn-test-tone" data-tone="siren">🔊 Siren</button>
-                <button class="snap-btn-secondary btn-test-tone" data-tone="classic">🔊 Classic</button>
-              </div>
-            </div>
-
-            <div class="snap-card">
-              <h4 style="font-size:13px; font-weight:700;">100% Local Phone Storage</h4>
-              <p style="font-size:11px; color:#64748b; line-height:1.4;">All medication schedules, camera logs, and settings are saved locally on your iPhone device with zero cloud server persistence.</p>
-            </div>
-
-            <button id="btn-reset-demo" class="snap-btn-danger" style="width:100%; padding:12px;">Reset Demo Data</button>
-          `;
+      if (activeTab === 'today') {
+        const taken = meds.filter(m => m.status === 'taken').length;
+        const total = meds.length;
+        const pct = total === 0 ? 0 : Math.round((taken/total)*100);
+        
+        let dayDots = '';
+        const todayIdx = (new Date().getDay() + 6) % 7;
+        for(let i=0; i<7; i++) {
+          let cls = i === todayIdx ? 'today-active' : (i < todayIdx && logs.length > 0 ? 'done' : '');
+          let txt = (cls === 'done' || (i===todayIdx && pct===100)) ? '✓' : '';
+          if(i===todayIdx && pct===100) cls = 'done';
+          dayDots += `<div class="day-col"><span class="day-lbl"></span><div class="day-dot "></div></div>`;
         }
-      } catch(err) {
-        container.innerHTML = `
-          <div class="snap-card" style="text-align:center; padding:24px; gap:14px;">
-            <h3 style="font-size:16px; font-weight:700; color:#be123c;">Data Reset Required</h3>
-            <p style="font-size:12px; color:#64748b;">Cache cleared. Tap below to refresh your schedule.</p>
-            <button id="btn-reset-demo-err" class="snap-btn-primary" style="width:100%;">Reset Data</button>
+
+        html += `
+          <div class="card" style="align-items:center; padding:12px;">
+            <img src="image.png" class="hero-img" onerror="this.style.display='none';" />
+          </div>
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="title-sm">🔥  '0 Day Streak'</span>
+              <span class="tag sched">% Complete</span>
+            </div>
+            <div class="prog-track"><div class="prog-fill" style="width:%;"></div></div>
+            <p class="text-sm"> of  Doses Verified</p>
+            <div class="week-row"></div>
+          </div>
+          <div class="section-header">
+            <div><h2 class="title-lg">Today's Schedule</h2><p class="text-sm">Active Reminders</p></div>
+            <button onclick="window.showModal('modal-add')" class="btn-main" style="padding:8px 14px; font-size:12px;">+ Add Med</button>
           </div>
         `;
-      }
-    }
-
-    function triggerVerification(medId) {
-      const med = medications.find(m => m.id === medId);
-      if (!med) return;
-      activeAlarmMed = med;
-      document.getElementById('alarm-med-title').innerText = ` ()`;
-      document.getElementById('alarm-med-instructions').innerText = med.instructions || 'Take as prescribed';
-      document.getElementById('alarm-tone-badge').innerText = formatToneName(med.tone || 'urgent').toUpperCase();
-      
-      document.getElementById('camera-box').classList.add('hidden');
-      document.getElementById('review-box').classList.add('hidden');
-      document.getElementById('start-camera-box').classList.remove('hidden');
-      document.getElementById('alarm-overlay').classList.remove('hidden');
-
-      alarmSynth.start(med.tone || 'urgent');
-    }
-
-    async function startCameraStream() {
-      document.getElementById('start-camera-box').classList.add('hidden');
-      document.getElementById('camera-box').classList.remove('hidden');
-
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: 'environment' }, width: { ideal: 640 } },
-          audio: false
-        });
-        activeCameraStream = stream;
-        const video = document.getElementById('webcam-video');
-        video.srcObject = stream;
-        video.play();
-      } catch (err) {
-        alert("Camera access required for pill photo verification. Please allow camera permissions in Safari.");
-      }
-    }
-
-    function stopCameraStream() {
-      if (activeCameraStream) {
-        activeCameraStream.getTracks().forEach(t => t.stop());
-        activeCameraStream = null;
-      }
-    }
-
-    function captureSnapshot() {
-      const video = document.getElementById('webcam-video');
-      const canvas = document.createElement('canvas');
-      const maxWidth = 480;
-      const scale = maxWidth / video.videoWidth;
-      canvas.width = maxWidth;
-      canvas.height = video.videoHeight * scale;
-
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.70);
-      currentCapturedBase64 = dataUrl;
-
-      stopCameraStream();
-      document.getElementById('camera-box').classList.add('hidden');
-      document.getElementById('review-box').classList.remove('hidden');
-      document.getElementById('captured-img').src = dataUrl;
-
-      verifyWithGeminiAI(dataUrl);
-    }
-
-    async function verifyWithGeminiAI(base64Image) {
-      const statusCard = document.getElementById('ai-status-card');
-      const clearBtnBox = document.getElementById('clear-btn-container');
-
-      statusCard.innerHTML = `<span style="color:#2dd4bf;">SnapDose AI Inspecting Pill in Hand...</span>`;
-      clearBtnBox.innerHTML = '';
-
-      const cleanBase64 = base64Image.replace(/^data:image\/(png|jpeg|jpg);base64,/, "");
-      const prompt = `Inspect this image carefully. Is a human hand or palm visible, AND is an actual medicine pill, tablet, capsule, or supplement clearly sitting on or held in the hand? Respond strictly in JSON: {"isValid": true/false, "pillDescription": "string", "reason": "string"}`;
-
-      const payload = {
-        contents: [{
-          parts: [
-            { text: prompt },
-            { inlineData: { mimeType: "image/jpeg", data: cleanBase64 } }
-          ]
-        }],
-        generationConfig: { responseMimeType: "application/json" }
-      };
-
-      const delays = [1000, 2000, 4000, 8000];
-      let attempts = 0;
-      let success = false;
-
-      while (attempts < 4 && !success) {
-        try {
-          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+        
+        if (meds.length === 0) {
+          html += `<div class="card" style="text-align:center;"><p class="text-sm">No medications scheduled.</p></div>`;
+        } else {
+          meds.forEach(m => {
+            let statCls = m.status === 'taken' ? 'taken' : (m.status === 'skipped' ? 'skip' : 'sched');
+            let btn = (m.status !== 'taken' && m.status !== 'skipped') ? `<button onclick="window.fireAlarm('')" class="btn-main" style="padding:8px 16px;">Take & Snap</button>` : '';
+            html += `
+              <div class="card">
+                <div class="med-header">
+                  <div style="display:flex; align-items:center;">
+                    <div class="med-icon">💊</div>
+                    <div><h3 class="title-sm"></h3><p class="text-sm"> • </p></div>
+                  </div>
+                  <span class="tag "></span>
+                </div>
+                <div class="med-footer">
+                  <div style="display:flex; gap:8px; align-items:center;"><span style="font-weight:700;font-size:12px;color:#475569;">🕒 </span><span class="tag" style="background:#f1f5f9;"></span></div>
+                  
+                </div>
+              </div>
+            `;
           });
-
-          if (!res.ok) throw new Error("API status " + res.status);
-          const data = await res.json();
-          const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          const parsed = JSON.parse(text);
-
-          currentAiResult = parsed;
-          success = true;
-
-          if (parsed.isValid) {
-            statusCard.style.border = "1px solid #10b981";
-            statusCard.innerHTML = `
-              <p style="font-weight:700; color:#34d399;">✓ Pill Confirmed in Hand by AI</p>
-              <p style="color:#cbd5e1;"></p>
+        }
+      } 
+      else if (activeTab === 'meds') {
+        html += `<div class="section-header"><h2 class="title-lg">Roster</h2><button onclick="window.showModal('modal-add')" class="btn-main" style="padding:8px 14px; font-size:12px;">+ Add New</button></div>`;
+        meds.forEach(m => {
+          html += `
+            <div class="card" style="flex-direction:row; justify-content:space-between; align-items:center;">
+              <div><h4 class="title-sm"></h4><p class="text-sm"> • </p></div>
+              <button onclick="window.delMed('')" style="background:none; border:none; color:#ef4444; font-weight:700;">Delete</button>
+            </div>
+          `;
+        });
+      }
+      else if (activeTab === 'audit') {
+        html += `<div class="section-header"><h2 class="title-lg">Audit Log</h2></div>`;
+        if (logs.length === 0) {
+          html += `<div class="card" style="text-align:center;"><p class="text-sm">No history recorded.</p></div>`;
+        } else {
+          logs.forEach(l => {
+            let img = l.img ? `<img src="" style="width:60px; height:60px; object-fit:cover; border-radius:12px;" />` : `<div style="width:60px; height:60px; background:#fff1f2; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px;">⚠️</div>`;
+            html += `
+              <div class="card">
+                <div style="display:flex; justify-content:space-between;"><h4 class="title-sm"></h4><span class="tag  'taken'"></span></div>
+                <div style="display:flex; gap:12px;">
+                  
+                  <div style="display:flex; flex-direction:column; gap:4px; justify-content:center;">
+                    <span style="font-weight:700; font-size:12px;"></span>
+                    <span class="text-sm" style="font-size:10px;"></span>
+                  </div>
+                </div>
+              </div>
             `;
-            clearBtnBox.innerHTML = `
-              <button id="btn-confirm-clear" class="snap-btn-success">Confirm & Stop Alarm</button>
-            `;
-          } else {
-            statusCard.style.border = "1px solid #ef4444";
-            statusCard.innerHTML = `
-              <p style="font-weight:700; color:#f87171;">✕ Verification Failed</p>
-              <p style="color:#cbd5e1;"></p>
-            `;
-            clearBtnBox.innerHTML = `
-              <button id="btn-retake-photo" class="snap-btn-secondary" style="width:100%;">Retake Photo</button>
-            `;
-          }
-        } catch (err) {
-          attempts++;
-          if (attempts >= 4) {
-            currentAiResult = { isValid: true, pillDescription: "Manual camera proof logged" };
-            statusCard.style.border = "1px solid #10b981";
-            statusCard.innerHTML = `<p style="font-weight:700; color:#34d399;">✓ Photo Proof Logged</p>`;
-            clearBtnBox.innerHTML = `<button id="btn-confirm-clear" class="snap-btn-success">Confirm & Stop Alarm</button>`;
-          } else {
-            await new Promise(r => setTimeout(r, delays[attempts - 1]));
-          }
+          });
         }
       }
-    }
-
-    function confirmAndClearAlarm() {
-      if (!activeAlarmMed || !currentCapturedBase64) return;
-      alarmSynth.stop();
-
-      const log = {
-        id: `log-`,
-        medName: activeAlarmMed.name,
-        dosage: activeAlarmMed.dosage,
-        timestamp: new Date().toISOString(),
-        photo: currentCapturedBase64,
-        aiVerification: currentAiResult,
-        status: 'taken'
-      };
-
-      adherenceLogs.unshift(log);
-      medications = medications.map(m => m.id === activeAlarmMed.id ? { ...m, status: 'taken', lastTakenTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) } : m);
-      saveState();
-
-      document.getElementById('alarm-overlay').classList.add('hidden');
-      activeAlarmMed = null;
-      currentCapturedBase64 = null;
-      renderMainContent();
-    }
-
-    function snoozeAlarm(mins) {
-      alarmSynth.stop();
-      stopCameraStream();
-      if (activeAlarmMed) {
-        medications = medications.map(m => m.id === activeAlarmMed.id ? { ...m, status: 'snoozed', snoozeCount: (m.snoozeCount || 0) + 1 } : m);
-        saveState();
+      else if (activeTab === 'settings') {
+        html += `
+          <h2 class="title-lg">Settings</h2>
+          <div class="card">
+            <h4 class="title-sm">Test Audio</h4>
+            <div class="grid-2">
+              <button onclick="window.testTone('gentle')" class="btn-sec">🔊 Gentle</button>
+              <button onclick="window.testTone('urgent')" class="btn-sec">🔊 Urgent</button>
+              <button onclick="window.testTone('siren')" class="btn-sec">🔊 Siren</button>
+            </div>
+          </div>
+          <button onclick="window.resetApp()" class="btn-danger" style="margin-top:12px;">Reset Data</button>
+        `;
       }
-      document.getElementById('alarm-overlay').classList.add('hidden');
-      activeAlarmMed = null;
-      renderMainContent();
+      v.innerHTML = html;
     }
 
-    function openSkipModal() { document.getElementById('skip-modal').classList.remove('hidden'); }
-    function closeSkipModal() { document.getElementById('skip-modal').classList.add('hidden'); }
+    // Window Global Actions (Ensures touch binds work on Safari)
+    window.showModal = function(id) { document.getElementById(id).style.display = 'flex'; };
+    window.hideModal = function(id) { document.getElementById(id).style.display = 'none'; stopAlarm(); stopCam(); };
 
-    function handleConfirmSkip(e) {
-      if (e) e.preventDefault();
-      if (!activeAlarmMed) return;
+    window.testSelectedTone = function() { playTone(document.getElementById('add-tone').value); };
+    window.testTone = function(t) { playTone(t); };
 
-      alarmSynth.stop();
-      stopCameraStream();
+    window.saveMedication = function() {
+      const n = document.getElementById('add-name').value || 'New Med';
+      const d = document.getElementById('add-dose').value || '1 dose';
+      const t = document.getElementById('add-time').value || '08:00';
+      const tn = document.getElementById('add-tone').value;
+      const i = document.getElementById('add-inst').value;
+      meds.push({ id: 'm'+Date.now(), name: n, dosage: d, time: t, tone: tn, inst: i, status: 'pending' });
+      saveData(); window.hideModal('modal-add'); render();
+    };
 
-      const reasonEl = document.getElementById('skip-reason-select');
-      const notesEl = document.getElementById('skip-notes-input');
-      const reason = reasonEl ? reasonEl.value : 'Other reason';
-      const notes = notesEl ? notesEl.value : '';
+    window.delMed = function(id) { meds = meds.filter(m => m.id !== id); saveData(); render(); };
+    window.resetApp = function() { meds = DEF_MEDS; logs = []; saveData(); render(); };
 
-      const log = {
-        id: `log-`,
-        medName: activeAlarmMed.name,
-        dosage: activeAlarmMed.dosage,
-        timestamp: new Date().toISOString(),
-        photo: null,
-        status: 'skipped',
-        reason: reason,
-        notes: notes
-      };
+    window.fireAlarm = function(id) {
+      activeMed = meds.find(m => m.id === id);
+      if(!activeMed) return;
+      document.getElementById('alarm-med-title').innerText = activeMed.name;
+      document.getElementById('alarm-med-inst').innerText = activeMed.inst;
+      document.getElementById('alarm-tone-tag').innerText = activeMed.tone.toUpperCase();
+      
+      document.getElementById('box-cam-init').style.display = 'block';
+      document.getElementById('box-cam-live').style.display = 'none';
+      document.getElementById('box-cam-review').style.display = 'none';
+      
+      window.showModal('modal-alarm');
+      startAlarm(activeMed.tone);
+    };
 
-      adherenceLogs.unshift(log);
-      medications = medications.map(m => m.id === activeAlarmMed.id ? { ...m, status: 'skipped', skipReason: reason } : m);
-      saveState();
-
-      closeSkipModal();
-      document.getElementById('alarm-overlay').classList.add('hidden');
-      activeAlarmMed = null;
-      currentCapturedBase64 = null;
-      renderMainContent();
-    }
-
-    function openAddModal() { document.getElementById('add-modal').classList.remove('hidden'); }
-    function closeAddModal() { alarmSynth.stop(); document.getElementById('add-modal').classList.add('hidden'); }
-    function openPwaGuide() { document.getElementById('pwa-modal').classList.remove('hidden'); }
-    function closePwaGuide() { document.getElementById('pwa-modal').classList.add('hidden'); }
-
-    function handleAddMedication(e) {
-      if (e) e.preventDefault();
-      alarmSynth.stop();
-
-      const nameEl = document.getElementById('input-name');
-      const dosageEl = document.getElementById('input-dosage');
-      const timeEl = document.getElementById('input-time');
-      const toneEl = document.getElementById('input-tone');
-      const instructionsEl = document.getElementById('input-instructions');
-
-      const name = nameEl ? nameEl.value : 'New Medication';
-      const dosage = dosageEl ? dosageEl.value : '1 dose';
-      const time = timeEl ? timeEl.value : '08:00';
-      const tone = toneEl ? toneEl.value : 'urgent';
-      const instructions = instructionsEl ? instructionsEl.value : 'Take as directed';
-
-      medications.push({
-        id: `med-`,
-        name,
-        dosage,
-        times: [time],
-        tone,
-        instructions: instructions || 'Take as directed',
-        status: 'pending'
-      });
-      saveState();
-      closeAddModal();
-      renderMainContent();
-    }
-
-    function deleteMedication(id) {
-      medications = medications.filter(m => m.id !== id);
-      saveState();
-      renderMainContent();
-    }
-
-    function resetData() {
+    window.startCamera = async function() {
+      document.getElementById('box-cam-init').style.display = 'none';
+      document.getElementById('box-cam-live').style.display = 'flex';
       try {
-        localStorage.removeItem('snap_meds');
-        localStorage.removeItem('snap_logs');
-      } catch(e){}
-      medications = DEFAULT_MEDS;
-      adherenceLogs = [];
-      saveState();
-      renderMainContent();
-    }
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        document.getElementById('vid-stream').srcObject = stream;
+      } catch(e) { alert("Camera access denied by iOS Safari."); }
+    };
 
-    // Direct Event Delegation Engine (Explicitly binds taps across dynamic HTML)
-    document.addEventListener('click', function(e) {
-      const target = e.target;
+    function stopCam() { if(stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } }
 
-      // Bottom Navigation Tabs
-      if (target.closest('#nav-today')) { switchTab('today'); return; }
-      if (target.closest('#nav-meds')) { switchTab('meds'); return; }
-      if (target.closest('#nav-audit')) { switchTab('audit'); return; }
-      if (target.closest('#nav-settings')) { switchTab('settings'); return; }
+    window.snapPhoto = function() {
+      const vid = document.getElementById('vid-stream');
+      const cvs = document.createElement('canvas');
+      cvs.width = 400; cvs.height = vid.videoHeight * (400 / vid.videoWidth);
+      cvs.getContext('2d').drawImage(vid, 0, 0, cvs.width, cvs.height);
+      photoData = cvs.toDataURL('image/jpeg', 0.7);
+      
+      stopCam();
+      document.getElementById('box-cam-live').style.display = 'none';
+      document.getElementById('box-cam-review').style.display = 'flex';
+      document.getElementById('img-preview').src = photoData;
+      
+      window.runAI(photoData);
+    };
 
-      // Modals
-      if (target.closest('#btn-pwa-badge')) { openPwaGuide(); return; }
-      if (target.closest('#btn-close-pwa-x') || target.closest('#btn-close-pwa-ok')) { closePwaGuide(); return; }
-      if (target.closest('#btn-add-med-today') || target.closest('#btn-add-med-roster')) { openAddModal(); return; }
-      if (target.closest('#btn-close-add-x') || target.closest('#btn-close-add-cancel')) { closeAddModal(); return; }
-      if (target.closest('#btn-open-skip')) { openSkipModal(); return; }
-      if (target.closest('#btn-close-skip-x') || target.closest('#btn-close-skip-cancel')) { closeSkipModal(); return; }
-
-      // Actions
-      if (target.closest('.btn-take-snap')) {
-        const id = target.closest('.btn-take-snap').getAttribute('data-medid');
-        triggerVerification(id);
-        return;
+    window.runAI = async function(b64) {
+      const st = document.getElementById('ai-status');
+      const ax = document.getElementById('ai-actions');
+      st.innerText = "Analyzing pill in hand..."; ax.innerHTML = '';
+      
+      try {
+        const body = {
+          contents: [{ parts: [
+            {text: 'Is a human hand holding a pill/medication? Reply JSON {"isValid":true/false, "desc":"description"}'},
+            {inlineData: {mimeType:"image/jpeg", data: b64.split(',')[1]}}
+          ]}],
+          generationConfig: { responseMimeType: "application/json" }
+        };
+        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+        if(!r.ok) throw new Error();
+        const d = await r.json();
+        const j = JSON.parse(d.candidates[0].content.parts[0].text);
+        
+        aiData = j.desc;
+        if(j.isValid) {
+          st.innerHTML = `<span style="color:#059669;font-weight:bold;">✓ Verified: </span>`;
+          ax.innerHTML = `<button onclick="window.confirmLog()" class="btn-main" style="width:100%;">Confirm & Stop Alarm</button>`;
+        } else {
+          st.innerHTML = `<span style="color:#e11d48;font-weight:bold;">✕ Failed: </span>`;
+          ax.innerHTML = `<button onclick="window.startCamera()" class="btn-sec" style="width:100%;">Retake Photo</button>`;
+        }
+      } catch(e) {
+        aiData = "Manual fallback logged";
+        st.innerHTML = `<span style="color:#059669;font-weight:bold;">✓ Photo Logged</span>`;
+        ax.innerHTML = `<button onclick="window.confirmLog()" class="btn-main" style="width:100%;">Confirm & Stop Alarm</button>`;
       }
+    };
 
-      if (target.closest('.btn-delete-med')) {
-        const id = target.closest('.btn-delete-med').getAttribute('data-medid');
-        deleteMedication(id);
-        return;
-      }
+    window.confirmLog = function() {
+      if(!activeMed) return;
+      logs.unshift({ id: Date.now(), name: activeMed.name, status: 'taken', img: photoData, aiText: aiData, date: new Date().toISOString() });
+      activeMed.status = 'taken';
+      saveData(); window.hideModal('modal-alarm'); render();
+    };
 
-      if (target.closest('#btn-open-camera') || target.closest('#btn-retake-photo')) { startCameraStream(); return; }
-      if (target.closest('#btn-snap-photo')) { captureSnapshot(); return; }
-      if (target.closest('#btn-confirm-clear')) { confirmAndClearAlarm(); return; }
+    window.snooze = function(m) {
+      if(activeMed) { activeMed.status = 'snoozed'; }
+      saveData(); window.hideModal('modal-alarm'); render();
+    };
 
-      if (target.closest('.snooze-btn')) {
-        const mins = parseInt(target.closest('.snooze-btn').getAttribute('data-mins') || '5');
-        snoozeAlarm(mins);
-        return;
-      }
+    window.confirmSkip = function() {
+      if(!activeMed) return;
+      logs.unshift({ id: Date.now(), name: activeMed.name, status: 'skipped', reason: document.getElementById('skip-reason').value, date: new Date().toISOString() });
+      activeMed.status = 'skipped';
+      saveData(); window.hideModal('modal-skip'); render();
+    };
 
-      if (target.closest('.btn-test-tone')) {
-        const tone = target.closest('.btn-test-tone').getAttribute('data-tone');
-        alarmSynth.start(tone || 'urgent');
-        setTimeout(() => alarmSynth.stop(), 2500);
-        return;
-      }
-
-      if (target.closest('#btn-test-add-tone')) {
-        const el = document.getElementById('input-tone');
-        alarmSynth.start(el ? el.value : 'urgent');
-        setTimeout(() => alarmSynth.stop(), 2500);
-        return;
-      }
-
-      if (target.closest('#btn-reset-demo') || target.closest('#btn-reset-demo-err')) { resetData(); return; }
-    });
-
-    // Schedule Checker
+    // Auto-check schedule
     setInterval(() => {
-      if (activeAlarmMed) return;
-      const now = new Date();
-      const timeStr = `:`;
-      const match = medications.find(m => Array.isArray(m.times) && m.times.includes(timeStr) && m.status !== 'taken' && m.status !== 'skipped');
-      if (match) triggerVerification(match.id);
+      if(document.getElementById('modal-alarm').style.display === 'flex') return;
+      const t = new Date().toTimeString().substring(0,5);
+      const m = meds.find(x => x.time === t && x.status === 'pending');
+      if(m) window.fireAlarm(m.id);
     }, 10000);
 
-    // Initial Execution Engine
-    function initApp() {
-      loadSavedData();
-      switchTab('today');
-
-      const addForm = document.getElementById('add-med-form');
-      if (addForm) addForm.onsubmit = handleAddMedication;
-
-      const skipForm = document.getElementById('skip-form');
-      if (skipForm) skipForm.onsubmit = handleConfirmSkip;
-    }
-
-    initApp();
-    window.addEventListener('load', initApp);
-    window.addEventListener('pageshow', initApp);
+    // Init
+    loadData();
+    render();
   </script>
 </body>
 </html>
+
+
 
