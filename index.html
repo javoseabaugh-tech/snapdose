@@ -11,8 +11,9 @@
   <meta name="theme-color" content="#ffffff">
   <title>SnapDose - Photo-Confirmed Meds</title>
 
-  <!-- Native Embedded CSS (iOS Safe Area Layout) -->
+  <!-- Native Embedded CSS (iOS Safe Area Layout & Touch Targets) -->
   <style>
+    /* Reset & Viewport Lock */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -33,6 +34,7 @@
       -webkit-text-size-adjust: 100%;
     }
 
+    /* Fixed Viewport Shell Constrained Between Safari Bars */
     #app-container {
       position: fixed;
       top: 0;
@@ -47,7 +49,7 @@
       overflow: hidden;
     }
 
-    /* Top Navigation Header */
+    /* Header adjusted for Dynamic Island / Notch */
     header {
       flex-shrink: 0;
       padding-top: max(12px, env(safe-area-inset-top));
@@ -75,7 +77,7 @@
       object-fit: contain;
     }
 
-    .header-logo-text {
+    .header-logo-fallback {
       font-size: 18px;
       font-weight: 800;
       color: #0b132a;
@@ -96,7 +98,7 @@
       cursor: pointer;
     }
 
-    /* Main Scrollable Viewport */
+    /* Main Content Viewport */
     main {
       flex: 1 1 auto;
       overflow-y: auto;
@@ -134,7 +136,7 @@
       object-fit: contain;
     }
 
-    /* Progress & Streak Bar */
+    /* Progress Bar */
     .progress-track {
       width: 100%;
       background-color: #f1f5f9;
@@ -215,7 +217,7 @@
       color: #64748b;
     }
 
-    /* Medication Item */
+    /* Medication Items */
     .med-item-header {
       display: flex;
       justify-content: space-between;
@@ -404,7 +406,7 @@
       height: 22px;
     }
 
-    /* Overlays & Modals */
+    /* Modals & Overlays */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -532,8 +534,8 @@
     <!-- Top Header -->
     <header>
       <div class="header-logo-box">
-        <img src="image.png" alt="SnapDose" class="header-logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';" />
-        <span class="header-logo-text" style="display:none;">SnapDose</span>
+        <img src="image.png" alt="SnapDose Logo" class="header-logo-img" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline-block';" />
+        <span class="header-logo-fallback" style="display:none;">SnapDose</span>
       </div>
 
       <button onclick="openPwaGuide()" class="pwa-pill-badge">
@@ -542,96 +544,9 @@
       </button>
     </header>
 
-    <!-- Pre-Rendered Main Content Viewport (Guarantees visible schedule cards on launch) -->
+    <!-- Scrollable Main Viewport -->
     <main id="tab-content">
-      <!-- HERO LOGO CARD -->
-      <div class="snap-card hero-card">
-        <img src="image.png" alt="SnapDose Logo" class="hero-logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
-        <h1 style="display:none; font-size:22px; font-weight:800; color:#0b132a;">SnapDose</h1>
-      </div>
-
-      <!-- STREAK & PROGRESS CARD -->
-      <div class="snap-card">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <div style="display:flex; align-items:center; gap:6px;">
-            <span style="font-size:16px;">🔥</span>
-            <span id="streak-label" style="font-size:14px; font-weight:700;">1 Day Streak</span>
-          </div>
-          <span id="today-percent-tag" class="status-tag scheduled">0% Complete</span>
-        </div>
-
-        <div class="progress-track">
-          <div id="today-progress-bar" class="progress-fill" style="width: 0%;"></div>
-        </div>
-
-        <div style="display:flex; justify-content:space-between; font-size:11px; color:#64748b; padding-top:4px; border-top:1px solid #f1f5f9;">
-          <span id="doses-count-label">0 of 2 Doses Verified</span>
-          <span>On Schedule</span>
-        </div>
-
-        <!-- Weekly Heatmap -->
-        <div class="weekly-row">
-          <div class="weekly-day-item"><span class="weekly-day-label">M</span><div class="weekly-day-circle today-active"></div></div>
-          <div class="weekly-day-item"><span class="weekly-day-label">T</span><div class="weekly-day-circle"></div></div>
-          <div class="weekly-day-item"><span class="weekly-day-label">W</span><div class="weekly-day-circle"></div></div>
-          <div class="weekly-day-item"><span class="weekly-day-label">T</span><div class="weekly-day-circle"></div></div>
-          <div class="weekly-day-item"><span class="weekly-day-label">F</span><div class="weekly-day-circle"></div></div>
-          <div class="weekly-day-item"><span class="weekly-day-label">S</span><div class="weekly-day-circle"></div></div>
-          <div class="weekly-day-item"><span class="weekly-day-label">S</span><div class="weekly-day-circle"></div></div>
-        </div>
-      </div>
-
-      <div class="section-header">
-        <div>
-          <h2 class="section-title">Today's Schedule</h2>
-          <p class="section-subtitle">Active Reminders</p>
-        </div>
-        <button onclick="openAddModal()" class="snap-btn-primary">+ Add Med</button>
-      </div>
-
-      <!-- Schedule List -->
-      <div id="schedule-cards-list" style="display:flex; flex-direction:column; gap:12px;">
-        <!-- Pre-rendered medication items -->
-        <div class="snap-card">
-          <div class="med-item-header">
-            <div class="med-info-group">
-              <div class="med-icon-badge">💊</div>
-              <div>
-                <h3 class="med-name">Amoxicillin</h3>
-                <p class="med-details">500 mg • Take with food and water</p>
-              </div>
-            </div>
-            <span class="status-tag scheduled">Scheduled</span>
-          </div>
-          <div class="med-card-footer">
-            <div style="display:flex; align-items:center; gap:6px;">
-              <span class="med-time-label">🕒 08:00 • 20:00</span>
-              <span class="tone-badge">Urgent Pulse</span>
-            </div>
-            <button onclick="triggerVerification('med-1')" class="snap-btn-primary">Take & Snap</button>
-          </div>
-        </div>
-
-        <div class="snap-card">
-          <div class="med-item-header">
-            <div class="med-info-group">
-              <div class="med-icon-badge">💊</div>
-              <div>
-                <h3 class="med-name">Vitamin D3 & Zinc</h3>
-                <p class="med-details">2000 IU • Take after lunch</p>
-              </div>
-            </div>
-            <span class="status-tag scheduled">Scheduled</span>
-          </div>
-          <div class="med-card-footer">
-            <div style="display:flex; align-items:center; gap:6px;">
-              <span class="med-time-label">🕒 12:30</span>
-              <span class="tone-badge">Gentle Chime</span>
-            </div>
-            <button onclick="triggerVerification('med-2')" class="snap-btn-primary">Take & Snap</button>
-          </div>
-        </div>
-      </div>
+      <!-- Content populated dynamically -->
     </main>
 
     <!-- Bottom Navigation Bar -->
@@ -647,7 +562,7 @@
       </button>
 
       <button onclick="switchTab('audit')" id="nav-audit" class="nav-btn">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
         <span>Audit Log</span>
       </button>
 
@@ -839,7 +754,7 @@
   <script>
     const apiKey = ""; // Canvas runtime key
 
-    const INITIAL_MEDS = [
+    const DEFAULT_MEDS = [
       {
         id: 'med-1',
         name: 'Amoxicillin',
@@ -861,20 +776,48 @@
     ];
 
     let currentTab = 'today';
-    let medications = INITIAL_MEDS;
+    let medications = DEFAULT_MEDS;
     let adherenceLogs = [];
 
-    // Safe Local Storage Engine
+    // Helper functions
+    function safeJoinTimes(times, sep = ' • ') {
+      if (Array.isArray(times)) return times.join(sep);
+      if (typeof times === 'string') return times;
+      return '08:00';
+    }
+
+    // Defensive Local Storage Sanitizer
     function loadSavedData() {
       try {
         const savedMeds = localStorage.getItem('snap_meds');
         if (savedMeds) {
           const parsed = JSON.parse(savedMeds);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            medications = parsed;
+            medications = parsed.map(m => {
+              let timesArr = ['08:00'];
+              if (Array.isArray(m.times)) timesArr = m.times;
+              else if (typeof m.times === 'string') timesArr = [m.times];
+
+              return {
+                id: m.id || `med-${Date.now()}-${Math.random()}`,
+                name: m.name || 'Medication',
+                dosage: m.dosage || '1 dose',
+                times: timesArr,
+                tone: m.tone || 'urgent',
+                instructions: m.instructions || 'Take as directed',
+                status: m.status || 'pending',
+                snoozeCount: m.snoozeCount || 0,
+                lastTakenTime: m.lastTakenTime || null,
+                skipReason: m.skipReason || null
+              };
+            });
+          } else {
+            medications = DEFAULT_MEDS;
           }
         }
-      } catch(e) { medications = INITIAL_MEDS; }
+      } catch(e) { 
+        medications = DEFAULT_MEDS; 
+      }
 
       try {
         const savedLogs = localStorage.getItem('snap_logs');
@@ -1057,7 +1000,7 @@
     function switchTab(tab) {
       currentTab = tab;
       document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-      const activeBtn = document.getElementById(`nav-`);
+      const activeBtn = document.getElementById(`nav-${tab}`);
       if (activeBtn) activeBtn.classList.add('active');
       renderMainContent();
     }
@@ -1074,180 +1017,199 @@
     function renderMainContent() {
       const container = document.getElementById('tab-content');
       if (!container) return;
-      const stats = calculateAdherenceStats();
 
-      if (currentTab === 'today') {
-        container.innerHTML = `
-          <!-- HERO LOGO CARD -->
-          <div class="snap-card hero-card">
-            <img src="image.png" alt="SnapDose Logo" class="hero-logo-img" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';" />
-            <h1 style="display:none; font-size:22px; font-weight:800; color:#0b132a; text-align:center;">SnapDose</h1>
-          </div>
+      try {
+        const stats = calculateAdherenceStats();
 
-          <!-- STREAK & PROGRESS CARD -->
-          <div class="snap-card">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <div style="display:flex; align-items:center; gap:6px;">
-                <span style="font-size:16px;">🔥</span>
-                <span style="font-size:14px; font-weight:700;"> Day Streak</span>
+        if (currentTab === 'today') {
+          container.innerHTML = `
+            <!-- HERO LOGO CARD -->
+            <div class="snap-card hero-card">
+              <img src="image.png" alt="SnapDose Logo" class="hero-logo-img" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';" />
+              <h1 style="display:none; font-size:22px; font-weight:800; color:#0b132a; text-align:center;">SnapDose</h1>
+            </div>
+
+            <!-- STREAK & PROGRESS CARD -->
+            <div class="snap-card">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span style="font-size:16px;">🔥</span>
+                  <span style="font-size:14px; font-weight:700;">${stats.streakDays} Day Streak</span>
+                </div>
+                <span class="status-tag scheduled">${stats.todayPercent}% Complete</span>
               </div>
-              <span class="status-tag scheduled">% Complete</span>
+
+              <div class="progress-track">
+                <div class="progress-fill" style="width: ${stats.todayPercent}%;"></div>
+              </div>
+
+              <div style="display:flex; justify-content:space-between; font-size:11px; color:#64748b; padding-top:4px; border-top:1px solid #f1f5f9;">
+                <span>${stats.takenMedsToday} of ${stats.totalMedsToday} Doses Verified</span>
+                <span>On Schedule</span>
+              </div>
+
+              <!-- Weekly Heatmap -->
+              <div class="weekly-row">
+                ${stats.weeklyHeatmap.map(d => `
+                  <div class="weekly-day-item">
+                    <span class="weekly-day-label">${d.label}</span>
+                    <div class="weekly-day-circle ${d.isComplete ? 'complete' : (d.isToday ? 'today-active' : '')}">
+                      ${d.isComplete ? '✓' : ''}
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
             </div>
 
-            <div class="progress-track">
-              <div class="progress-fill" style="width: %;"></div>
+            <div class="section-header">
+              <div>
+                <h2 class="section-title">Today's Schedule</h2>
+                <p class="section-subtitle">${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</p>
+              </div>
+              <button onclick="openAddModal()" class="snap-btn-primary">+ Add Med</button>
             </div>
 
-            <div style="display:flex; justify-content:space-between; font-size:11px; color:#64748b; padding-top:4px; border-top:1px solid #f1f5f9;">
-              <span> of  Doses Verified</span>
-              <span>On Schedule</span>
-            </div>
-
-            <!-- Weekly Heatmap -->
-            <div class="weekly-row">
-              </span>
-                  <div class="weekly-day-circle  (d.isToday ? 'today-active' : '')">
-                     ''
+            <div style="display:flex; flex-direction:column; gap:12px;">
+              ${medications.length === 0 ? `
+                <div class="snap-card" style="text-align:center; padding:24px;">
+                  <p style="font-size:13px; color:#64748b;">No medications scheduled.</p>
+                </div>
+              ` : medications.map(med => `
+                <div class="snap-card">
+                  <div class="med-item-header">
+                    <div class="med-info-group">
+                      <div class="med-icon-badge">💊</div>
+                      <div>
+                        <h3 class="med-name">${med.name || 'Medication'}</h3>
+                        <p class="med-details">${med.dosage || '1 dose'} • ${med.instructions || 'Take as directed'}</p>
+                      </div>
+                    </div>
+                    <span class="status-tag ${med.status || 'pending'}">${med.status || 'scheduled'}</span>
+                  </div>
+                  <div class="med-card-footer">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                      <span class="med-time-label">🕒 ${safeJoinTimes(med.times)}</span>
+                      <span class="tone-badge">${formatToneName(med.tone)}</span>
+                    </div>
+                    ${(med.status !== 'taken' && med.status !== 'skipped') ? `
+                      <button onclick="triggerVerification('${med.id}')" class="snap-btn-primary">Take & Snap</button>
+                    ` : ''}
                   </div>
                 </div>
               `).join('')}
             </div>
-          </div>
-
-          <div class="section-header">
-            <div>
-              <h2 class="section-title">Today's Schedule</h2>
-              <p class="section-subtitle"> 'long', month: 'short', day: 'numeric' )}</p>
+          `;
+        } else if (currentTab === 'meds') {
+          container.innerHTML = `
+            <div class="section-header">
+              <h2 class="section-title">Medication Roster</h2>
+              <button onclick="openAddModal()" class="snap-btn-primary">+ Add New</button>
             </div>
-            <button onclick="openAddModal()" class="snap-btn-primary">+ Add Med</button>
-          </div>
-
-          <div style="display:flex; flex-direction:column; gap:12px;">
-            center; padding:24px;">
-                <p style="font-size:13px; color:#64748b;">No medications scheduled.</p>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+              ${medications.map(med => `
+                <div class="snap-card" style="flex-direction:row; justify-content:space-between; align-items:center;">
+                  <div>
+                    <h4 class="med-name">${med.name}</h4>
+                    <p class="med-details">${med.dosage} • ${safeJoinTimes(med.times, ', ')} • ${formatToneName(med.tone)}</p>
+                  </div>
+                  <button onclick="deleteMedication('${med.id}')" style="background:none; border:none; color:#ef4444; font-size:12px; font-weight:600; cursor:pointer;">Delete</button>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        } else if (currentTab === 'audit') {
+          container.innerHTML = `
+            <div class="section-header">
+              <div>
+                <h2 class="section-title">Audit & Adherence</h2>
+                <p class="section-subtitle">Photo-confirmed history verified by SnapDose AI</p>
               </div>
-            ` : medications.map(med => `
-              <div class="snap-card">
-                <div class="med-item-header">
-                  <div class="med-info-group">
-                    <div class="med-icon-badge">💊</div>
-                    <div>
-                      <h3 class="med-name"></h3>
-                      <p class="med-details"> • </p>
+            </div>
+
+            <div class="snap-card">
+              <h3 style="font-size:11px; font-weight:700; text-transform:uppercase; color:#64748b;">Adherence Overview</h3>
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; text-align:center;">
+                <div style="padding:12px; background:#f0fdf4; border:1px solid #ccfbf1; border-radius:14px;">
+                  <p style="font-size:22px; font-weight:900; color:#0f766e;">${stats.totalVerifiedSnaps}</p>
+                  <p style="font-size:10px; color:#475569;">Verified SnapDoses</p>
+                </div>
+                <div style="padding:12px; background:#f0fdf4; border:1px solid #ccfbf1; border-radius:14px;">
+                  <p style="font-size:22px; font-weight:900; color:#0f766e;">${stats.streakDays} Days</p>
+                  <p style="font-size:10px; color:#475569;">Current Streak</p>
+                </div>
+              </div>
+
+              <div style="padding-top:8px; border-top:1px solid #f1f5f9;">
+                <p style="font-size:11px; font-weight:600; color:#475569; margin-bottom:6px;">Milestone Badges</p>
+                <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                  ${stats.badges.length === 0 ? `
+                    <span style="font-size:11px; color:#94a3b8;">Complete verified doses to earn badges!</span>
+                  ` : stats.badges.map(b => `
+                    <span style="padding:4px 10px; border-radius:10px; font-size:11px; font-weight:600; background:#fffbeb; color:#92400e; border:1px solid #fde68a;">
+                      ${b.icon} ${b.title}
+                    </span>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:12px;">
+              ${adherenceLogs.length === 0 ? `
+                <div class="snap-card" style="text-align:center; padding:24px;">
+                  <p style="font-size:12px; color:#64748b;">No logs recorded yet.</p>
+                </div>
+              ` : adherenceLogs.map(log => `
+                <div class="snap-card">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h4 style="font-size:14px; font-weight:700;">${log.medName || 'Medication'} (${log.dosage || '1 dose'})</h4>
+                    <span class="status-tag ${log.status === 'skipped' ? 'skipped' : 'taken'}">${log.status === 'skipped' ? 'Skipped' : 'AI Confirmed'}</span>
+                  </div>
+                  <div style="display:flex; gap:12px; align-items:center;">
+                    ${log.photo ? `
+                      <img src="${log.photo}" style="width:60px; height:60px; object-fit:cover; border-radius:12px; border:1px solid #e2e8f0;" />
+                    ` : `
+                      <div style="width:60px; height:60px; border-radius:12px; background:#fff1f2; border:1px solid #fecdd3; display:flex; align-items:center; justify-content:center; font-size:20px;">⚠️</div>
+                    `}
+                    <div style="font-size:12px; display:flex; flex-direction:column; gap:2px;">
+                      <p style="font-weight:600; color:#0b132a;">${log.reason ? `Reason: ${log.reason}` : (log.aiVerification?.pillDescription || 'Pill in hand confirmed')}</p>
+                      <p style="font-size:10px; color:#94a3b8;">${new Date(log.timestamp).toLocaleString()}</p>
                     </div>
                   </div>
-                  <span class="status-tag "></span>
                 </div>
-                <div class="med-card-footer">
-                  <div style="display:flex; align-items:center; gap:6px;">
-                    <span class="med-time-label">🕒 ${(med.times || []).join(' • ')</span>
-                    <span class="tone-badge"></span>
-                  </div>
-                  ${(med.status !== 'taken' && med.status !== 'skipped') ? `
-                    <button onclick="triggerVerification('')" class="snap-btn-primary">Take & Snap</button>
-                  ` : ''}
-                </div>
+              `).join('')}
+            </div>
+          `;
+        } else if (currentTab === 'settings') {
+          container.innerHTML = `
+            <h2 class="section-title">Settings & Audio</h2>
+            
+            <div class="snap-card">
+              <h4 style="font-size:13px; font-weight:700;">Alarm Sound Test</h4>
+              <p style="font-size:11px; color:#64748b;">Test Web Audio alarm sound profiles:</p>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; padding-top:4px;">
+                <button onclick="alarmSynth.start('gentle'); setTimeout(() => alarmSynth.stop(), 2500)" class="snap-btn-secondary">🔊 Gentle</button>
+                <button onclick="alarmSynth.start('urgent'); setTimeout(() => alarmSynth.stop(), 2500)" class="snap-btn-secondary">🔊 Urgent</button>
+                <button onclick="alarmSynth.start('siren'); setTimeout(() => alarmSynth.stop(), 2500)" class="snap-btn-secondary">🔊 Siren</button>
+                <button onclick="alarmSynth.start('classic'); setTimeout(() => alarmSynth.stop(), 2500)" class="snap-btn-secondary">🔊 Classic</button>
               </div>
-            `).join('')}
-          </div>
-        `;
-      } else if (currentTab === 'meds') {
+            </div>
+
+            <div class="snap-card">
+              <h4 style="font-size:13px; font-weight:700;">100% Local Phone Storage</h4>
+              <p style="font-size:11px; color:#64748b; line-height:1.4;">All medication schedules, camera logs, and settings are saved locally on your iPhone device with zero cloud server persistence.</p>
+            </div>
+
+            <button onclick="resetData()" class="snap-btn-danger" style="width:100%; padding:12px;">Reset Demo Data</button>
+          `;
+        }
+      } catch(err) {
+        // Fail-safe Error Recovery View
         container.innerHTML = `
-          <div class="section-header">
-            <h2 class="section-title">Medication Roster</h2>
-            <button onclick="openAddModal()" class="snap-btn-primary">+ Add New</button>
+          <div class="snap-card" style="text-align:center; padding:24px; gap:14px;">
+            <h3 style="font-size:16px; font-weight:700; color:#be123c;">Data Reset Required</h3>
+            <p style="font-size:12px; color:#64748b;">Old storage cache cleared. Tap below to refresh your schedule.</p>
+            <button onclick="resetData()" class="snap-btn-primary" style="width:100%;">Reset Data</button>
           </div>
-          <div style="display:flex; flex-direction:column; gap:12px;">
-            row; justify-content:space-between; align-items:center;">
-                <div>
-                  <h4 class="med-name"></h4>
-                  <p class="med-details"> • ${(med.times || []).join(', ') • </p>
-                </div>
-                <button onclick="deleteMedication('')" style="background:none; border:none; color:#ef4444; font-size:12px; font-weight:600; cursor:pointer;">Delete</button>
-              </div>
-            `).join('')}
-          </div>
-        `;
-      } else if (currentTab === 'audit') {
-        container.innerHTML = `
-          <div class="section-header">
-            <div>
-              <h2 class="section-title">Audit & Adherence</h2>
-              <p class="section-subtitle">Photo-confirmed history verified by SnapDose AI</p>
-            </div>
-          </div>
-
-          <div class="snap-card">
-            <h3 style="font-size:11px; font-weight:700; text-transform:uppercase; color:#64748b;">Adherence Overview</h3>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; text-align:center;">
-              <div style="padding:12px; background:#f0fdf4; border:1px solid #ccfbf1; border-radius:14px;">
-                <p style="font-size:22px; font-weight:900; color:#0f766e;"></p>
-                <p style="font-size:10px; color:#475569;">Verified SnapDoses</p>
-              </div>
-              <div style="padding:12px; background:#f0fdf4; border:1px solid #ccfbf1; border-radius:14px;">
-                <p style="font-size:22px; font-weight:900; color:#0f766e;"> Days</p>
-                <p style="font-size:10px; color:#475569;">Current Streak</p>
-              </div>
-            </div>
-
-            <div style="padding-top:8px; border-top:1px solid #f1f5f9;">
-              <p style="font-size:11px; font-weight:600; color:#475569; margin-bottom:6px;">Milestone Badges</p>
-              <div style="display:flex; flex-wrap:wrap; gap:6px;">
-                11px; color:#94a3b8;">Complete verified doses to earn badges!</span>
-                ` : stats.badges.map(b => `
-                  <span style="padding:4px 10px; border-radius:10px; font-size:11px; font-weight:600; background:#fffbeb; color:#92400e; border:1px solid #fde68a;">
-                     
-                  </span>
-                `).join('')
-              </div>
-            </div>
-          </div>
-
-          <div style="display:flex; flex-direction:column; gap:12px;">
-            center; padding:24px;">
-                <p style="font-size:12px; color:#64748b;">No logs recorded yet.</p>
-              </div>
-            ` : adherenceLogs.map(log => `
-              <div class="snap-card">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <h4 style="font-size:14px; font-weight:700;"> ()</h4>
-                  <span class="status-tag  'taken'"> 'AI Confirmed'</span>
-                </div>
-                <div style="display:flex; gap:12px; align-items:center;">
-                  " style="width:60px; height:60px; object-fit:cover; border-radius:12px; border:1px solid #e2e8f0;" />
-                  ` : `
-                    <div style="width:60px; height:60px; border-radius:12px; background:#fff1f2; border:1px solid #fecdd3; display:flex; align-items:center; justify-content:center; font-size:20px;">⚠️</div>
-                  `
-                  <div style="font-size:12px; display:flex; flex-direction:column; gap:2px;">
-                    <p style="font-weight:600; color:#0b132a;"> ` : (log.aiVerification?.pillDescription || 'Pill in hand confirmed')</p>
-                    <p style="font-size:10px; color:#94a3b8;"></p>
-                  </div>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        `;
-      } else if (currentTab === 'settings') {
-        container.innerHTML = `
-          <h2 class="section-title">Settings & Audio</h2>
-          
-          <div class="snap-card">
-            <h4 style="font-size:13px; font-weight:700;">Alarm Sound Test</h4>
-            <p style="font-size:11px; color:#64748b;">Test Web Audio alarm sound profiles:</p>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; padding-top:4px;">
-              <button onclick="alarmSynth.start('gentle'); setTimeout(() => alarmSynth.stop(), 2500)" class="snap-btn-secondary">🔊 Gentle</button>
-              <button onclick="alarmSynth.start('urgent'); setTimeout(() => alarmSynth.stop(), 2500)" class="snap-btn-secondary">🔊 Urgent</button>
-              <button onclick="alarmSynth.start('siren'); setTimeout(() => alarmSynth.stop(), 2500)" class="snap-btn-secondary">🔊 Siren</button>
-              <button onclick="alarmSynth.start('classic'); setTimeout(() => alarmSynth.stop(), 2500)" class="snap-btn-secondary">🔊 Classic</button>
-            </div>
-          </div>
-
-          <div class="snap-card">
-            <h4 style="font-size:13px; font-weight:700;">100% Local Phone Storage</h4>
-            <p style="font-size:11px; color:#64748b; line-height:1.4;">All medication schedules, camera logs, and settings are saved locally on your iPhone device with zero cloud server persistence.</p>
-          </div>
-
-          <button onclick="resetData()" class="snap-btn-danger" style="width:100%; padding:12px;">Reset Demo Data</button>
         `;
       }
     }
@@ -1256,7 +1218,7 @@
       const med = medications.find(m => m.id === medId);
       if (!med) return;
       activeAlarmMed = med;
-      document.getElementById('alarm-med-title').innerText = ` ()`;
+      document.getElementById('alarm-med-title').innerText = `${med.name} (${med.dosage})`;
       document.getElementById('alarm-med-instructions').innerText = med.instructions || 'Take as prescribed';
       document.getElementById('alarm-tone-badge').innerText = formatToneName(med.tone || 'urgent').toUpperCase();
       
@@ -1341,7 +1303,7 @@
 
       while (attempts < 4 && !success) {
         try {
-          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=`, {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -1359,7 +1321,7 @@
             statusCard.style.border = "1px solid #10b981";
             statusCard.innerHTML = `
               <p style="font-weight:700; color:#34d399;">✓ Pill Confirmed in Hand by AI</p>
-              <p style="color:#cbd5e1;"></p>
+              <p style="color:#cbd5e1;">${parsed.pillDescription || 'Medication verified.'}</p>
             `;
             clearBtnBox.innerHTML = `
               <button onclick="confirmAndClearAlarm()" class="snap-btn-success">Confirm & Stop Alarm</button>
@@ -1368,7 +1330,7 @@
             statusCard.style.border = "1px solid #ef4444";
             statusCard.innerHTML = `
               <p style="font-weight:700; color:#f87171;">✕ Verification Failed</p>
-              <p style="color:#cbd5e1;"></p>
+              <p style="color:#cbd5e1;">${parsed.reason || 'No pill detected in hand.'}</p>
             `;
             clearBtnBox.innerHTML = `
               <button onclick="startCameraStream()" class="snap-btn-secondary" style="width:100%;">Retake Photo</button>
@@ -1393,7 +1355,7 @@
       alarmSynth.stop();
 
       const log = {
-        id: `log-`,
+        id: `log-${Date.now()}`,
         medName: activeAlarmMed.name,
         dosage: activeAlarmMed.dosage,
         timestamp: new Date().toISOString(),
@@ -1438,7 +1400,7 @@
       const notes = document.getElementById('skip-notes-input').value;
 
       const log = {
-        id: `log-`,
+        id: `log-${Date.now()}`,
         medName: activeAlarmMed.name,
         dosage: activeAlarmMed.dosage,
         timestamp: new Date().toISOString(),
@@ -1474,7 +1436,7 @@
       const instructions = document.getElementById('input-instructions').value;
 
       medications.push({
-        id: `med-`,
+        id: `med-${Date.now()}`,
         name,
         dosage,
         times: [time],
@@ -1494,8 +1456,11 @@
     }
 
     function resetData() {
-      localStorage.clear();
-      medications = INITIAL_MEDS;
+      try {
+        localStorage.removeItem('snap_meds');
+        localStorage.removeItem('snap_logs');
+      } catch(e){}
+      medications = DEFAULT_MEDS;
       adherenceLogs = [];
       saveState();
       renderMainContent();
@@ -1505,13 +1470,21 @@
     setInterval(() => {
       if (activeAlarmMed) return;
       const now = new Date();
-      const timeStr = `:`;
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
       const match = medications.find(m => Array.isArray(m.times) && m.times.includes(timeStr) && m.status !== 'taken' && m.status !== 'skipped');
       if (match) triggerVerification(match.id);
     }, 10000);
 
-    // Initial Execution
-    loadSavedData();
+    // Initial Execution Engine
+    function initApp() {
+      loadSavedData();
+      switchTab('today');
+    }
+
+    // Direct & Event Execution Triggers
+    initApp();
+    window.addEventListener('load', initApp);
+    window.addEventListener('pageshow', initApp);
   </script>
 </body>
 </html>
