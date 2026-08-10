@@ -11,14 +11,13 @@
   <meta name="theme-color" content="#ffffff">
   <title>SnapDose - Photo-Confirmed Meds</title>
 
-  <!-- Native Embedded CSS (iOS Safe Area Layout & Touch Targets) -->
+  <!-- Embedded Native CSS (iOS Safari Event & Safe-Area Optimized) -->
   <style>
-    /* Reset & Viewport Lock */
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      -webkit-tap-highlight-color: transparent;
+      -webkit-tap-highlight-color: rgba(13, 148, 136, 0.15);
       touch-action: manipulation;
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
     }
@@ -34,7 +33,7 @@
       -webkit-text-size-adjust: 100%;
     }
 
-    /* Fixed Viewport Shell Constrained Between Safari Bars */
+    /* Fixed Viewport Shell Constrained Between iOS Safari Toolbars */
     #app-container {
       position: fixed;
       top: 0;
@@ -49,11 +48,11 @@
       overflow: hidden;
     }
 
-    /* Header adjusted for Dynamic Island / Notch */
+    /* Top Navigation Header */
     header {
       flex-shrink: 0;
       padding-top: max(12px, env(safe-area-inset-top));
-      padding-bottom: 12px;
+      padding-bottom: 10px;
       padding-left: 16px;
       padding-right: 16px;
       background-color: #ffffff;
@@ -65,15 +64,15 @@
     }
 
     .header-logo-box {
-      height: 32px;
+      height: 28px;
       display: flex;
       align-items: center;
     }
 
     .header-logo-img {
-      height: 100%;
+      max-height: 28px;
       width: auto;
-      max-width: 140px;
+      max-width: 130px;
       object-fit: contain;
     }
 
@@ -95,48 +94,51 @@
       display: flex;
       align-items: center;
       gap: 4px;
-      cursor: pointer;
+      cursor: pointer !important;
     }
 
-    /* Main Content Viewport */
+    /* Main Scrollable Viewport */
     main {
       flex: 1 1 auto;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
       padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      z-index: 10;
-    }
-
-    /* Card System */
-    .snap-card {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 20px;
-      padding: 16px;
-      box-shadow: 0 4px 16px -2px rgba(11, 19, 42, 0.04);
+      padding-bottom: 24px;
       display: flex;
       flex-direction: column;
       gap: 12px;
+      z-index: 10;
+    }
+
+    /* Clean Card System */
+    .snap-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      padding: 14px 16px;
+      box-shadow: 0 4px 16px -2px rgba(11, 19, 42, 0.04);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
       flex-shrink: 0;
     }
 
     .hero-card {
       text-align: center;
-      padding: 18px 16px;
+      padding: 12px 16px;
       align-items: center;
+      justify-content: center;
     }
 
     .hero-logo-img {
-      max-width: 180px;
-      height: auto;
+      max-height: 70px;
+      width: auto;
+      max-width: 220px;
       margin: 0 auto;
       object-fit: contain;
     }
 
-    /* Progress Bar */
+    /* Progress & Streak Bar */
     .progress-track {
       width: 100%;
       background-color: #f1f5f9;
@@ -197,7 +199,7 @@
       color: #0f766e;
     }
 
-    /* Titles */
+    /* Section Titles */
     .section-header {
       display: flex;
       justify-content: space-between;
@@ -217,7 +219,7 @@
       color: #64748b;
     }
 
-    /* Medication Items */
+    /* Medication Item */
     .med-item-header {
       display: flex;
       justify-content: space-between;
@@ -231,15 +233,15 @@
     }
 
     .med-icon-badge {
-      width: 42px;
-      height: 42px;
-      border-radius: 14px;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
       background-color: #f0fdf4;
       border: 1px solid #ccfbf1;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
+      font-size: 18px;
     }
 
     .med-name {
@@ -287,7 +289,7 @@
     }
 
     .med-card-footer {
-      padding-top: 10px;
+      padding-top: 8px;
       border-top: 1px solid #f1f5f9;
       display: flex;
       justify-content: space-between;
@@ -311,7 +313,13 @@
       text-transform: uppercase;
     }
 
-    /* Buttons */
+    /* Interactive Elements & Touch Targets */
+    [data-action], button, select, input, a {
+      cursor: pointer !important;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
     .snap-btn-primary {
       background-color: #0d9488;
       color: #ffffff;
@@ -320,7 +328,6 @@
       padding: 10px 16px;
       font-size: 13px;
       font-weight: 700;
-      cursor: pointer;
       box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
     }
 
@@ -337,7 +344,6 @@
       padding: 10px 14px;
       font-size: 12px;
       font-weight: 600;
-      cursor: pointer;
     }
 
     .snap-btn-danger {
@@ -348,7 +354,6 @@
       padding: 10px 14px;
       font-size: 12px;
       font-weight: 700;
-      cursor: pointer;
       box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
     }
 
@@ -360,7 +365,6 @@
       padding: 12px 16px;
       font-size: 14px;
       font-weight: 700;
-      cursor: pointer;
       width: 100%;
       box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
     }
@@ -369,7 +373,7 @@
     nav {
       flex-shrink: 0;
       padding-top: 10px;
-      padding-bottom: max(12px, env(safe-area-inset-bottom));
+      padding-bottom: max(14px, env(safe-area-inset-bottom));
       padding-left: 16px;
       padding-right: 16px;
       background-color: #ffffff;
@@ -391,9 +395,8 @@
       color: #94a3b8;
       font-size: 11px;
       font-weight: 500;
-      cursor: pointer;
       padding: 6px 14px;
-      min-height: 44px;
+      min-height: 48px;
     }
 
     .nav-btn.active {
@@ -404,6 +407,11 @@
     .nav-btn svg {
       width: 22px;
       height: 22px;
+      pointer-events: none;
+    }
+
+    .nav-btn span {
+      pointer-events: none;
     }
 
     /* Modals & Overlays */
@@ -518,7 +526,6 @@
       border: 1px solid #334155;
       font-size: 11px;
       font-weight: 600;
-      cursor: pointer;
     }
 
     .hidden {
@@ -538,7 +545,7 @@
         <span class="header-logo-fallback" style="display:none;">SnapDose</span>
       </div>
 
-      <button onclick="openPwaGuide()" class="pwa-pill-badge">
+      <button data-action="openPwaGuide" class="pwa-pill-badge">
         <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
         <span>iOS PWA</span>
       </button>
@@ -551,22 +558,22 @@
 
     <!-- Bottom Navigation Bar -->
     <nav>
-      <button onclick="switchTab('today')" id="nav-today" class="nav-btn active">
+      <button data-action="switchTab" data-arg="today" id="nav-today" class="nav-btn active">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
         <span>Today</span>
       </button>
 
-      <button onclick="switchTab('meds')" id="nav-meds" class="nav-btn">
+      <button data-action="switchTab" data-arg="meds" id="nav-meds" class="nav-btn">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
         <span>Roster</span>
       </button>
 
-      <button onclick="switchTab('audit')" id="nav-audit" class="nav-btn">
+      <button data-action="switchTab" data-arg="audit" id="nav-audit" class="nav-btn">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
         <span>Audit Log</span>
       </button>
 
-      <button onclick="switchTab('settings')" id="nav-settings" class="nav-btn">
+      <button data-action="switchTab" data-arg="settings" id="nav-settings" class="nav-btn">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
         <span>Settings</span>
       </button>
@@ -575,7 +582,7 @@
     <!-- FULL SCREEN CAMERA VERIFICATION & ALARM OVERLAY -->
     <div id="alarm-overlay" class="modal-overlay hidden">
       <div style="text-align:center; display:flex; flex-direction:column; gap:6px; margin-top:8px;">
-        <div style="width:64px; height:64px; margin:0 auto; background:#ffffff; border-radius:18px; padding:6px; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+        <div style="width:56px; height:56px; margin:0 auto; background:#ffffff; border-radius:16px; padding:6px; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
           <img src="image.png" alt="SnapDose Logo" style="width:100%; height:100%; object-fit:contain;" />
         </div>
         <h2 style="font-size:20px; font-weight:800;">Time for Medication</h2>
@@ -599,7 +606,7 @@
             </div>
           </div>
 
-          <button onclick="captureSnapshot()" class="snap-btn-primary" style="padding:14px; font-size:14px; width:100%;">
+          <button data-action="captureSnapshot" class="snap-btn-primary" style="padding:14px; font-size:14px; width:100%;">
             📸 Snap Verification Photo
           </button>
         </div>
@@ -617,7 +624,7 @@
 
         <!-- Start Camera Button -->
         <div id="start-camera-box">
-          <button onclick="startCameraStream()" class="snap-btn-primary" style="padding:14px; font-size:14px; width:100%;">
+          <button data-action="startCameraStream" class="snap-btn-primary" style="padding:14px; font-size:14px; width:100%;">
             📷 Open Camera to Verify
           </button>
         </div>
@@ -628,15 +635,15 @@
         <div style="display:flex; flex-direction:column; gap:4px;">
           <p style="font-size:11px; text-align:center; color:#cbd5e1;">Need more time? Snooze reminder:</p>
           <div class="snooze-grid">
-            <button onclick="snoozeAlarm(5)" class="snooze-btn">+5m</button>
-            <button onclick="snoozeAlarm(15)" class="snooze-btn">+15m</button>
-            <button onclick="snoozeAlarm(30)" class="snooze-btn">+30m</button>
-            <button onclick="snoozeAlarm(60)" class="snooze-btn">+1h</button>
+            <button data-action="snoozeAlarm" data-arg="5" class="snooze-btn">+5m</button>
+            <button data-action="snoozeAlarm" data-arg="15" class="snooze-btn">+15m</button>
+            <button data-action="snoozeAlarm" data-arg="30" class="snooze-btn">+30m</button>
+            <button data-action="snoozeAlarm" data-arg="60" class="snooze-btn">+1h</button>
           </div>
         </div>
 
         <div style="text-align:center; padding-top:6px; border-top:1px solid #1e293b;">
-          <button onclick="openSkipModal()" style="background:none; border:none; color:#fca5a5; font-size:11px; font-weight:600; text-decoration:underline; cursor:pointer;">
+          <button data-action="openSkipModal" style="background:none; border:none; color:#fca5a5; font-size:11px; font-weight:600; text-decoration:underline;">
             ⚠️ Unable to take pill? Emergency Skip
           </button>
         </div>
@@ -648,14 +655,14 @@
       <div class="modal-content">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
           <h3 style="font-size:15px; font-weight:700; color:#be123c;">Skip Dose Override</h3>
-          <button onclick="closeSkipModal()" style="background:none; border:none; color:#94a3b8; font-size:16px; cursor:pointer;">✕</button>
+          <button data-action="closeSkipModal" style="background:none; border:none; color:#94a3b8; font-size:16px;">✕</button>
         </div>
 
         <p style="font-size:12px; color:#64748b; line-height:1.4;">
           Please log the reason you cannot take this dose. This action disarms the alarm and records an entry in your audit history.
         </p>
 
-        <form onsubmit="handleConfirmSkip(event)" style="display:flex; flex-direction:column; gap:12px;">
+        <form id="skip-form" style="display:flex; flex-direction:column; gap:12px;">
           <div class="form-group">
             <label class="form-label">Reason for Skipping</label>
             <select id="skip-reason-select" required class="form-select">
@@ -677,7 +684,7 @@
           </div>
 
           <div style="display:flex; gap:8px; padding-top:4px;">
-            <button type="button" onclick="closeSkipModal()" class="snap-btn-secondary" style="width:50%;">Cancel</button>
+            <button type="button" data-action="closeSkipModal" class="snap-btn-secondary" style="width:50%;">Cancel</button>
             <button type="submit" class="snap-btn-danger" style="width:50%;">Confirm Skip</button>
           </div>
         </form>
@@ -689,10 +696,10 @@
       <div class="modal-content">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
           <h3 style="font-size:15px; font-weight:700;">Add Medication</h3>
-          <button onclick="closeAddModal()" style="background:none; border:none; color:#94a3b8; font-size:16px; cursor:pointer;">✕</button>
+          <button data-action="closeAddModal" style="background:none; border:none; color:#94a3b8; font-size:16px;">✕</button>
         </div>
 
-        <form onsubmit="handleAddMedication(event)" style="display:flex; flex-direction:column; gap:10px;">
+        <form id="add-med-form" style="display:flex; flex-direction:column; gap:10px;">
           <div class="form-group">
             <label class="form-label">Medication Name</label>
             <input type="text" id="input-name" required placeholder="e.g. Amoxicillin" class="form-input">
@@ -714,7 +721,7 @@
                 <option value="siren">Escalating Siren (High Urgency)</option>
                 <option value="classic">Classic Beep (80s Digital)</option>
               </select>
-              <button type="button" onclick="previewSelectedTone('input-tone')" class="snap-btn-secondary" style="padding:8px 12px;">🔊 Test</button>
+              <button type="button" data-action="previewSelectedTone" data-arg="input-tone" class="snap-btn-secondary" style="padding:8px 12px;">🔊 Test</button>
             </div>
           </div>
           <div class="form-group">
@@ -723,7 +730,7 @@
           </div>
 
           <div style="display:flex; gap:8px; padding-top:6px;">
-            <button type="button" onclick="closeAddModal()" class="snap-btn-secondary" style="width:50%;">Cancel</button>
+            <button type="button" data-action="closeAddModal" class="snap-btn-secondary" style="width:50%;">Cancel</button>
             <button type="submit" class="snap-btn-primary" style="width:50%;">Save Schedule</button>
           </div>
         </form>
@@ -735,7 +742,7 @@
       <div class="modal-content">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <h3 style="font-size:15px; font-weight:700;">Install SnapDose on iPhone</h3>
-          <button onclick="closePwaGuide()" style="background:none; border:none; color:#94a3b8; font-size:16px; cursor:pointer;">✕</button>
+          <button data-action="closePwaGuide" style="background:none; border:none; color:#94a3b8; font-size:16px;">✕</button>
         </div>
         <p style="font-size:12px; color:#64748b; line-height:1.4;">Host on GitHub Pages or Firebase and launch like a native iOS App:</p>
         <ol style="font-size:12px; color:#475569; padding-left:18px; display:flex; flex-direction:column; gap:6px;">
@@ -744,7 +751,7 @@
           <li>Select <strong>'Add to Home Screen'</strong>.</li>
           <li>Open directly from your home screen!</li>
         </ol>
-        <button onclick="closePwaGuide()" class="snap-btn-primary" style="width:100%; padding:10px;">Got It</button>
+        <button data-action="closePwaGuide" class="snap-btn-primary" style="width:100%; padding:10px;">Got It</button>
       </div>
     </div>
 
@@ -752,7 +759,7 @@
 
   <!-- JS ENGINE -->
   <script>
-    const apiKey = ""; // Canvas runtime key
+    const apiKey = ""; // Canvas runtime environment key
 
     const DEFAULT_MEDS = [
       {
@@ -779,14 +786,12 @@
     let medications = DEFAULT_MEDS;
     let adherenceLogs = [];
 
-    // Helper functions
     function safeJoinTimes(times, sep = ' • ') {
       if (Array.isArray(times)) return times.join(sep);
       if (typeof times === 'string') return times;
       return '08:00';
     }
 
-    // Defensive Local Storage Sanitizer
     function loadSavedData() {
       try {
         const savedMeds = localStorage.getItem('snap_meds');
@@ -799,7 +804,7 @@
               else if (typeof m.times === 'string') timesArr = [m.times];
 
               return {
-                id: m.id || `med-${Date.now()}-${Math.random()}`,
+                id: m.id || `med--`,
                 name: m.name || 'Medication',
                 dosage: m.dosage || '1 dose',
                 times: timesArr,
@@ -932,7 +937,8 @@
     const alarmSynth = new AudioAlarmSynth();
 
     function previewSelectedTone(selectId) {
-      const tone = document.getElementById(selectId).value;
+      const el = document.getElementById(selectId);
+      const tone = el ? el.value : 'urgent';
       alarmSynth.start(tone);
       setTimeout(() => alarmSynth.stop(), 2500);
     }
@@ -1000,7 +1006,7 @@
     function switchTab(tab) {
       currentTab = tab;
       document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-      const activeBtn = document.getElementById(`nav-${tab}`);
+      const activeBtn = document.getElementById(`nav-`);
       if (activeBtn) activeBtn.classList.add('active');
       renderMainContent();
     }
@@ -1023,7 +1029,7 @@
 
         if (currentTab === 'today') {
           container.innerHTML = `
-            <!-- HERO LOGO CARD -->
+            <!-- HERO LOGO CARD (Sized down for crisp layout) -->
             <div class="snap-card hero-card">
               <img src="image.png" alt="SnapDose Logo" class="hero-logo-img" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';" />
               <h1 style="display:none; font-size:22px; font-weight:800; color:#0b132a; text-align:center;">SnapDose</h1>
@@ -1034,27 +1040,25 @@
               <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="display:flex; align-items:center; gap:6px;">
                   <span style="font-size:16px;">🔥</span>
-                  <span style="font-size:14px; font-weight:700;">${stats.streakDays} Day Streak</span>
+                  <span style="font-size:14px; font-weight:700;"> Day Streak</span>
                 </div>
-                <span class="status-tag scheduled">${stats.todayPercent}% Complete</span>
+                <span class="status-tag scheduled">% Complete</span>
               </div>
 
               <div class="progress-track">
-                <div class="progress-fill" style="width: ${stats.todayPercent}%;"></div>
+                <div class="progress-fill" style="width: %;"></div>
               </div>
 
               <div style="display:flex; justify-content:space-between; font-size:11px; color:#64748b; padding-top:4px; border-top:1px solid #f1f5f9;">
-                <span>${stats.takenMedsToday} of ${stats.totalMedsToday} Doses Verified</span>
+                <span> of  Doses Verified</span>
                 <span>On Schedule</span>
               </div>
 
               <!-- Weekly Heatmap -->
               <div class="weekly-row">
-                ${stats.weeklyHeatmap.map(d => `
-                  <div class="weekly-day-item">
-                    <span class="weekly-day-label">${d.label}</span>
-                    <div class="weekly-day-circle ${d.isComplete ? 'complete' : (d.isToday ? 'today-active' : '')}">
-                      ${d.isComplete ? '✓' : ''}
+                </span>
+                    <div class="weekly-day-circle  (d.isToday ? 'today-active' : '')">
+                       ''
                     </div>
                   </div>
                 `).join('')}
@@ -1064,14 +1068,13 @@
             <div class="section-header">
               <div>
                 <h2 class="section-title">Today's Schedule</h2>
-                <p class="section-subtitle">${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</p>
+                <p class="section-subtitle"> 'long', month: 'short', day: 'numeric' )}</p>
               </div>
-              <button onclick="openAddModal()" class="snap-btn-primary">+ Add Med</button>
+              <button data-action="openAddModal" class="snap-btn-primary">+ Add Med</button>
             </div>
 
             <div style="display:flex; flex-direction:column; gap:12px;">
-              ${medications.length === 0 ? `
-                <div class="snap-card" style="text-align:center; padding:24px;">
+              center; padding:24px;">
                   <p style="font-size:13px; color:#64748b;">No medications scheduled.</p>
                 </div>
               ` : medications.map(med => `
@@ -1080,20 +1083,20 @@
                     <div class="med-info-group">
                       <div class="med-icon-badge">💊</div>
                       <div>
-                        <h3 class="med-name">${med.name || 'Medication'}</h3>
-                        <p class="med-details">${med.dosage || '1 dose'} • ${med.instructions || 'Take as directed'}</p>
+                        <h3 class="med-name"></h3>
+                        <p class="med-details"> • </p>
                       </div>
                     </div>
-                    <span class="status-tag ${med.status || 'pending'}">${med.status || 'scheduled'}</span>
+                    <span class="status-tag "></span>
                   </div>
                   <div class="med-card-footer">
                     <div style="display:flex; align-items:center; gap:6px;">
-                      <span class="med-time-label">🕒 ${safeJoinTimes(med.times)}</span>
-                      <span class="tone-badge">${formatToneName(med.tone)}</span>
+                      <span class="med-time-label">🕒 </span>
+                      <span class="tone-badge"></span>
                     </div>
                     ${(med.status !== 'taken' && med.status !== 'skipped') ? `
-                      <button onclick="triggerVerification('${med.id}')" class="snap-btn-primary">Take & Snap</button>
-                    ` : ''}
+                      <button data-action="triggerVerification" data-arg="" class="snap-btn-primary">Take & Snap</button>
+                    ` : ''
                   </div>
                 </div>
               `).join('')}
@@ -1103,18 +1106,17 @@
           container.innerHTML = `
             <div class="section-header">
               <h2 class="section-title">Medication Roster</h2>
-              <button onclick="openAddModal()" class="snap-btn-primary">+ Add New</button>
+              <button data-action="openAddModal" class="snap-btn-primary">+ Add New</button>
             </div>
             <div style="display:flex; flex-direction:column; gap:12px;">
-              ${medications.map(med => `
-                <div class="snap-card" style="flex-direction:row; justify-content:space-between; align-items:center;">
+              row; justify-content:space-between; align-items:center;">
                   <div>
-                    <h4 class="med-name">${med.name}</h4>
-                    <p class="med-details">${med.dosage} • ${safeJoinTimes(med.times, ', ')} • ${formatToneName(med.tone)}</p>
+                    <h4 class="med-name"></h4>
+                    <p class="med-details"> •  • </p>
                   </div>
-                  <button onclick="deleteMedication('${med.id}')" style="background:none; border:none; color:#ef4444; font-size:12px; font-weight:600; cursor:pointer;">Delete</button>
+                  <button data-action="deleteMedication" data-arg="" style="background:none; border:none; color:#ef4444; font-size:12px; font-weight:600;">Delete</button>
                 </div>
-              `).join('')}
+              `).join('')
             </div>
           `;
         } else if (currentTab === 'audit') {
@@ -1130,11 +1132,11 @@
               <h3 style="font-size:11px; font-weight:700; text-transform:uppercase; color:#64748b;">Adherence Overview</h3>
               <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; text-align:center;">
                 <div style="padding:12px; background:#f0fdf4; border:1px solid #ccfbf1; border-radius:14px;">
-                  <p style="font-size:22px; font-weight:900; color:#0f766e;">${stats.totalVerifiedSnaps}</p>
+                  <p style="font-size:22px; font-weight:900; color:#0f766e;"></p>
                   <p style="font-size:10px; color:#475569;">Verified SnapDoses</p>
                 </div>
                 <div style="padding:12px; background:#f0fdf4; border:1px solid #ccfbf1; border-radius:14px;">
-                  <p style="font-size:22px; font-weight:900; color:#0f766e;">${stats.streakDays} Days</p>
+                  <p style="font-size:22px; font-weight:900; color:#0f766e;"> Days</p>
                   <p style="font-size:10px; color:#475569;">Current Streak</p>
                 </div>
               </div>
@@ -1142,37 +1144,34 @@
               <div style="padding-top:8px; border-top:1px solid #f1f5f9;">
                 <p style="font-size:11px; font-weight:600; color:#475569; margin-bottom:6px;">Milestone Badges</p>
                 <div style="display:flex; flex-wrap:wrap; gap:6px;">
-                  ${stats.badges.length === 0 ? `
-                    <span style="font-size:11px; color:#94a3b8;">Complete verified doses to earn badges!</span>
+                  11px; color:#94a3b8;">Complete verified doses to earn badges!</span>
                   ` : stats.badges.map(b => `
                     <span style="padding:4px 10px; border-radius:10px; font-size:11px; font-weight:600; background:#fffbeb; color:#92400e; border:1px solid #fde68a;">
-                      ${b.icon} ${b.title}
+                       
                     </span>
-                  `).join('')}
+                  `).join('')
                 </div>
               </div>
             </div>
 
             <div style="display:flex; flex-direction:column; gap:12px;">
-              ${adherenceLogs.length === 0 ? `
-                <div class="snap-card" style="text-align:center; padding:24px;">
+              center; padding:24px;">
                   <p style="font-size:12px; color:#64748b;">No logs recorded yet.</p>
                 </div>
               ` : adherenceLogs.map(log => `
                 <div class="snap-card">
                   <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h4 style="font-size:14px; font-weight:700;">${log.medName || 'Medication'} (${log.dosage || '1 dose'})</h4>
-                    <span class="status-tag ${log.status === 'skipped' ? 'skipped' : 'taken'}">${log.status === 'skipped' ? 'Skipped' : 'AI Confirmed'}</span>
+                    <h4 style="font-size:14px; font-weight:700;"> ()</h4>
+                    <span class="status-tag  'taken'"> 'AI Confirmed'</span>
                   </div>
                   <div style="display:flex; gap:12px; align-items:center;">
-                    ${log.photo ? `
-                      <img src="${log.photo}" style="width:60px; height:60px; object-fit:cover; border-radius:12px; border:1px solid #e2e8f0;" />
+                    " style="width:60px; height:60px; object-fit:cover; border-radius:12px; border:1px solid #e2e8f0;" />
                     ` : `
                       <div style="width:60px; height:60px; border-radius:12px; background:#fff1f2; border:1px solid #fecdd3; display:flex; align-items:center; justify-content:center; font-size:20px;">⚠️</div>
-                    `}
+                    `
                     <div style="font-size:12px; display:flex; flex-direction:column; gap:2px;">
-                      <p style="font-weight:600; color:#0b132a;">${log.reason ? `Reason: ${log.reason}` : (log.aiVerification?.pillDescription || 'Pill in hand confirmed')}</p>
-                      <p style="font-size:10px; color:#94a3b8;">${new Date(log.timestamp).toLocaleString()}</p>
+                      <p style="font-weight:600; color:#0b132a;"> ` : (log.aiVerification?.pillDescription || 'Pill in hand confirmed')</p>
+                      <p style="font-size:10px; color:#94a3b8;"></p>
                     </div>
                   </div>
                 </div>
@@ -1187,10 +1186,10 @@
               <h4 style="font-size:13px; font-weight:700;">Alarm Sound Test</h4>
               <p style="font-size:11px; color:#64748b;">Test Web Audio alarm sound profiles:</p>
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; padding-top:4px;">
-                <button onclick="alarmSynth.start('gentle'); setTimeout(() => alarmSynth.stop(), 2500)" class="snap-btn-secondary">🔊 Gentle</button>
-                <button onclick="alarmSynth.start('urgent'); setTimeout(() => alarmSynth.stop(), 2500)" class="snap-btn-secondary">🔊 Urgent</button>
-                <button onclick="alarmSynth.start('siren'); setTimeout(() => alarmSynth.stop(), 2500)" class="snap-btn-secondary">🔊 Siren</button>
-                <button onclick="alarmSynth.start('classic'); setTimeout(() => alarmSynth.stop(), 2500)" class="snap-btn-secondary">🔊 Classic</button>
+                <button data-action="testTone" data-arg="gentle" class="snap-btn-secondary">🔊 Gentle</button>
+                <button data-action="testTone" data-arg="urgent" class="snap-btn-secondary">🔊 Urgent</button>
+                <button data-action="testTone" data-arg="siren" class="snap-btn-secondary">🔊 Siren</button>
+                <button data-action="testTone" data-arg="classic" class="snap-btn-secondary">🔊 Classic</button>
               </div>
             </div>
 
@@ -1199,16 +1198,15 @@
               <p style="font-size:11px; color:#64748b; line-height:1.4;">All medication schedules, camera logs, and settings are saved locally on your iPhone device with zero cloud server persistence.</p>
             </div>
 
-            <button onclick="resetData()" class="snap-btn-danger" style="width:100%; padding:12px;">Reset Demo Data</button>
+            <button data-action="resetData" class="snap-btn-danger" style="width:100%; padding:12px;">Reset Demo Data</button>
           `;
         }
       } catch(err) {
-        // Fail-safe Error Recovery View
         container.innerHTML = `
           <div class="snap-card" style="text-align:center; padding:24px; gap:14px;">
             <h3 style="font-size:16px; font-weight:700; color:#be123c;">Data Reset Required</h3>
-            <p style="font-size:12px; color:#64748b;">Old storage cache cleared. Tap below to refresh your schedule.</p>
-            <button onclick="resetData()" class="snap-btn-primary" style="width:100%;">Reset Data</button>
+            <p style="font-size:12px; color:#64748b;">Cache cleared. Tap below to refresh your schedule.</p>
+            <button data-action="resetData" class="snap-btn-primary" style="width:100%;">Reset Data</button>
           </div>
         `;
       }
@@ -1218,7 +1216,7 @@
       const med = medications.find(m => m.id === medId);
       if (!med) return;
       activeAlarmMed = med;
-      document.getElementById('alarm-med-title').innerText = `${med.name} (${med.dosage})`;
+      document.getElementById('alarm-med-title').innerText = ` ()`;
       document.getElementById('alarm-med-instructions').innerText = med.instructions || 'Take as prescribed';
       document.getElementById('alarm-tone-badge').innerText = formatToneName(med.tone || 'urgent').toUpperCase();
       
@@ -1303,7 +1301,7 @@
 
       while (attempts < 4 && !success) {
         try {
-          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -1321,19 +1319,19 @@
             statusCard.style.border = "1px solid #10b981";
             statusCard.innerHTML = `
               <p style="font-weight:700; color:#34d399;">✓ Pill Confirmed in Hand by AI</p>
-              <p style="color:#cbd5e1;">${parsed.pillDescription || 'Medication verified.'}</p>
+              <p style="color:#cbd5e1;"></p>
             `;
             clearBtnBox.innerHTML = `
-              <button onclick="confirmAndClearAlarm()" class="snap-btn-success">Confirm & Stop Alarm</button>
+              <button data-action="confirmAndClearAlarm" class="snap-btn-success">Confirm & Stop Alarm</button>
             `;
           } else {
             statusCard.style.border = "1px solid #ef4444";
             statusCard.innerHTML = `
               <p style="font-weight:700; color:#f87171;">✕ Verification Failed</p>
-              <p style="color:#cbd5e1;">${parsed.reason || 'No pill detected in hand.'}</p>
+              <p style="color:#cbd5e1;"></p>
             `;
             clearBtnBox.innerHTML = `
-              <button onclick="startCameraStream()" class="snap-btn-secondary" style="width:100%;">Retake Photo</button>
+              <button data-action="startCameraStream" class="snap-btn-secondary" style="width:100%;">Retake Photo</button>
             `;
           }
         } catch (err) {
@@ -1342,7 +1340,7 @@
             currentAiResult = { isValid: true, pillDescription: "Manual camera proof logged" };
             statusCard.style.border = "1px solid #10b981";
             statusCard.innerHTML = `<p style="font-weight:700; color:#34d399;">✓ Photo Proof Logged</p>`;
-            clearBtnBox.innerHTML = `<button onclick="confirmAndClearAlarm()" class="snap-btn-success">Confirm & Stop Alarm</button>`;
+            clearBtnBox.innerHTML = `<button data-action="confirmAndClearAlarm" class="snap-btn-success">Confirm & Stop Alarm</button>`;
           } else {
             await new Promise(r => setTimeout(r, delays[attempts - 1]));
           }
@@ -1355,7 +1353,7 @@
       alarmSynth.stop();
 
       const log = {
-        id: `log-${Date.now()}`,
+        id: `log-`,
         medName: activeAlarmMed.name,
         dosage: activeAlarmMed.dosage,
         timestamp: new Date().toISOString(),
@@ -1390,17 +1388,19 @@
     function closeSkipModal() { document.getElementById('skip-modal').classList.add('hidden'); }
 
     function handleConfirmSkip(e) {
-      e.preventDefault();
+      if (e) e.preventDefault();
       if (!activeAlarmMed) return;
 
       alarmSynth.stop();
       stopCameraStream();
 
-      const reason = document.getElementById('skip-reason-select').value;
-      const notes = document.getElementById('skip-notes-input').value;
+      const reasonEl = document.getElementById('skip-reason-select');
+      const notesEl = document.getElementById('skip-notes-input');
+      const reason = reasonEl ? reasonEl.value : 'Other reason';
+      const notes = notesEl ? notesEl.value : '';
 
       const log = {
-        id: `log-${Date.now()}`,
+        id: `log-`,
         medName: activeAlarmMed.name,
         dosage: activeAlarmMed.dosage,
         timestamp: new Date().toISOString(),
@@ -1427,16 +1427,23 @@
     function closePwaGuide() { document.getElementById('pwa-modal').classList.add('hidden'); }
 
     function handleAddMedication(e) {
-      e.preventDefault();
+      if (e) e.preventDefault();
       alarmSynth.stop();
-      const name = document.getElementById('input-name').value;
-      const dosage = document.getElementById('input-dosage').value;
-      const time = document.getElementById('input-time').value;
-      const tone = document.getElementById('input-tone').value;
-      const instructions = document.getElementById('input-instructions').value;
+
+      const nameEl = document.getElementById('input-name');
+      const dosageEl = document.getElementById('input-dosage');
+      const timeEl = document.getElementById('input-time');
+      const toneEl = document.getElementById('input-tone');
+      const instructionsEl = document.getElementById('input-instructions');
+
+      const name = nameEl ? nameEl.value : 'New Medication';
+      const dosage = dosageEl ? dosageEl.value : '1 dose';
+      const time = timeEl ? timeEl.value : '08:00';
+      const tone = toneEl ? toneEl.value : 'urgent';
+      const instructions = instructionsEl ? instructionsEl.value : 'Take as directed';
 
       medications.push({
-        id: `med-${Date.now()}`,
+        id: `med-`,
         name,
         dosage,
         times: [time],
@@ -1466,26 +1473,71 @@
       renderMainContent();
     }
 
-    // Schedule Checker
+    // Schedule Checker Interval
     setInterval(() => {
       if (activeAlarmMed) return;
       const now = new Date();
-      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      const timeStr = `:`;
       const match = medications.find(m => Array.isArray(m.times) && m.times.includes(timeStr) && m.status !== 'taken' && m.status !== 'skipped');
       if (match) triggerVerification(match.id);
     }, 10000);
 
-    // Initial Execution Engine
+    // Global Action Handler Engine (Guarantees touch & click execution on iOS Safari)
+    function handleAction(action, arg) {
+      switch(action) {
+        case 'switchTab': switchTab(arg); break;
+        case 'openAddModal': openAddModal(); break;
+        case 'closeAddModal': closeAddModal(); break;
+        case 'openPwaGuide': openPwaGuide(); break;
+        case 'closePwaGuide': closePwaGuide(); break;
+        case 'openSkipModal': openSkipModal(); break;
+        case 'closeSkipModal': closeSkipModal(); break;
+        case 'triggerVerification': triggerVerification(arg); break;
+        case 'startCameraStream': startCameraStream(); break;
+        case 'captureSnapshot': captureSnapshot(); break;
+        case 'confirmAndClearAlarm': confirmAndClearAlarm(); break;
+        case 'snoozeAlarm': snoozeAlarm(parseInt(arg || '5')); break;
+        case 'deleteMedication': deleteMedication(arg); break;
+        case 'resetData': resetData(); break;
+        case 'previewSelectedTone': previewSelectedTone(arg); break;
+        case 'testTone':
+          alarmSynth.start(arg || 'urgent');
+          setTimeout(() => alarmSynth.stop(), 2500);
+          break;
+      }
+    }
+
+    // Global Listener Binders
+    document.addEventListener('click', function(e) {
+      const btn = e.target.closest('[data-action]');
+      if (btn) {
+        e.preventDefault();
+        const action = btn.getAttribute('data-action');
+        const arg = btn.getAttribute('data-arg');
+        handleAction(action, arg);
+      }
+    }, true);
+
+    // Form Submit Event Listeners
+    document.addEventListener('DOMContentLoaded', () => {
+      const addForm = document.getElementById('add-med-form');
+      if (addForm) addForm.addEventListener('submit', handleAddMedication);
+
+      const skipForm = document.getElementById('skip-form');
+      if (skipForm) skipForm.addEventListener('submit', handleConfirmSkip);
+    });
+
+    // Initial Execution
     function initApp() {
       loadSavedData();
       switchTab('today');
     }
 
-    // Direct & Event Execution Triggers
     initApp();
     window.addEventListener('load', initApp);
     window.addEventListener('pageshow', initApp);
   </script>
 </body>
 </html>
+
 
