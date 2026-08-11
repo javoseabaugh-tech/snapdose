@@ -30,9 +30,14 @@
       color: #0b132a;
       width: 100%;
       min-height: 100vh;
-      /* padding-bottom ensures content doesn't hide behind the bottom nav bar */
       padding-bottom: max(90px, env(safe-area-inset-bottom) + 80px);
       -webkit-text-size-adjust: 100%;
+    }
+
+    input, select, textarea {
+      /* Prevents iOS from blocking form typing */
+      user-select: auto !important;
+      -webkit-user-select: auto !important;
     }
 
     /* Fixed Top Header */
@@ -76,6 +81,8 @@
       display: flex;
       flex-direction: column;
       gap: 16px;
+      position: relative;
+      z-index: 10;
     }
 
     /* Cards */
@@ -124,9 +131,9 @@
     .day-dot.active { border: 2px solid #0d9488; background: #f0fdf4; color: transparent; }
 
     /* Buttons */
-    button { outline: none; border: none; background: none; cursor: pointer; }
+    button { outline: none; border: none; background: none; cursor: pointer; transition: transform 0.1s; }
+    button:active { transform: scale(0.95); opacity: 0.8; }
     .btn-main { background: #0d9488; color: white; padding: 12px 18px; border-radius: 14px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 12px rgba(13,148,136,0.3); }
-    .btn-main:active { opacity: 0.8; transform: scale(0.97); }
     .btn-sec { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 12px 16px; border-radius: 14px; font-weight: 700; font-size: 13px; }
     .btn-danger { background: #ef4444; color: white; padding: 12px 16px; border-radius: 14px; font-weight: 700; font-size: 13px; }
 
@@ -140,20 +147,22 @@
     }
     .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #94a3b8; font-size: 11px; font-weight: 600; width: 64px; }
     .nav-btn.active { color: #0d9488; font-weight: 800; }
-    .nav-btn svg { width: 24px; height: 24px; }
+    .nav-btn svg { width: 24px; height: 24px; pointer-events: none; }
+    .nav-btn span { pointer-events: none; }
 
     /* Popups and Modals */
     .modal-wrap {
       position: fixed; top: 0; bottom: 0; left: 0; right: 0;
       background: rgba(15,23,42,0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-      z-index: 100; display: flex; justify-content: center; align-items: center; padding: 20px;
+      z-index: 100; display: none; justify-content: center; align-items: center; padding: 20px;
     }
     .modal-box {
       background: white; width: 100%; max-width: 400px; border-radius: 24px; padding: 24px;
       display: flex; flex-direction: column; gap: 16px; max-height: 85vh; overflow-y: auto;
     }
     
-    .input-box { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #cbd5e1; background: #f8fafc; font-size: 14px; color: #0b132a; margin-top: 4px; }
+    /* Font size 16px is required on iOS to prevent auto-zooming on tap */
+    .input-box { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #cbd5e1; background: #f8fafc; font-size: 16px; color: #0b132a; margin-top: 4px; }
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     
     .cam-box { background: black; border-radius: 16px; aspect-ratio: 4/3; position: relative; overflow: hidden; border: 2px solid #2dd4bf; }
@@ -165,10 +174,9 @@
   <!-- Top Header -->
   <header>
     <div class="header-logo-box">
-      <!-- Handles both lowercase and uppercase image extensions safely -->
       <img src="image.PNG" alt="SnapDose" class="logo-img" onerror="if(this.src.endsWith('image.PNG')){this.src='image.png';}else{this.style.display='none';}" />
     </div>
-    <button onclick="window.showModal('modal-pwa')" class="install-btn">
+    <button data-action="showModal" data-arg="modal-pwa" class="install-btn pwa-btn">
       <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
       <span>iOS PWA</span>
     </button>
@@ -176,73 +184,75 @@
 
   <!-- Main Dynamic Viewport -->
   <main id="main-view">
-    <!-- Populated by JavaScript -->
+    <!-- Populated safely by JavaScript -->
     <div style="padding:40px; text-align:center; color:#64748b;">Loading SnapDose...</div>
   </main>
 
   <!-- Fixed Bottom Navigation -->
   <nav>
-    <button onclick="window.switchTab('today')" id="tab-today" class="nav-btn active">
+    <button data-action="switchTab" data-arg="today" id="tab-today" class="nav-btn active">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
       <span>Today</span>
     </button>
-    <button onclick="window.switchTab('meds')" id="tab-meds" class="nav-btn">
+    <button data-action="switchTab" data-arg="meds" id="tab-meds" class="nav-btn">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
       <span>Roster</span>
     </button>
-    <button onclick="window.switchTab('audit')" id="tab-audit" class="nav-btn">
+    <button data-action="switchTab" data-arg="audit" id="tab-audit" class="nav-btn">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
       <span>Audit Log</span>
     </button>
-    <button onclick="window.switchTab('settings')" id="tab-settings" class="nav-btn">
+    <button data-action="switchTab" data-arg="settings" id="tab-settings" class="nav-btn">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-.826 3.31-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path></svg>
       <span>Settings</span>
     </button>
   </nav>
 
-  <!-- Add Medication Modal (Hidden by default) -->
-  <div id="modal-add" class="modal-wrap" style="display:none;">
+  <!-- Add Medication Modal -->
+  <div id="modal-add" class="modal-wrap">
     <div class="modal-box">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <span class="title-md">Add Medication</span>
-        <button onclick="window.hideModal('modal-add')" style="font-size:22px;color:#94a3b8;">✕</button>
+        <button data-action="hideModal" data-arg="modal-add" style="font-size:22px;color:#94a3b8;">✕</button>
       </div>
-      <div>
-        <label class="text-sm" style="font-weight:700;">Medication Name</label>
-        <input type="text" id="add-name" class="input-box" placeholder="e.g. Amoxicillin" />
-      </div>
-      <div>
-        <label class="text-sm" style="font-weight:700;">Dosage</label>
-        <input type="text" id="add-dose" class="input-box" placeholder="e.g. 500 mg" />
-      </div>
-      <div>
-        <label class="text-sm" style="font-weight:700;">Time</label>
-        <input type="time" id="add-time" class="input-box" value="08:00" />
-      </div>
-      <div>
-        <label class="text-sm" style="font-weight:700;">Alarm Tone</label>
-        <div style="display:flex; gap:8px;">
-          <select id="add-tone" class="input-box">
-            <option value="urgent">Urgent Pulse</option>
-            <option value="gentle">Gentle Chime</option>
-            <option value="siren">Escalating Siren</option>
-          </select>
-          <button onclick="window.testSelectedTone()" class="btn-sec" style="margin-top:4px;">🔊</button>
+      <form id="form-add" style="display:flex; flex-direction:column; gap:12px;">
+        <div>
+          <label class="text-sm" style="font-weight:700;">Medication Name</label>
+          <input type="text" id="add-name" class="input-box" placeholder="e.g. Amoxicillin" required />
         </div>
-      </div>
-      <div>
-        <label class="text-sm" style="font-weight:700;">Instructions</label>
-        <input type="text" id="add-inst" class="input-box" placeholder="Take with food" />
-      </div>
-      <div class="grid-2" style="margin-top:8px;">
-        <button onclick="window.hideModal('modal-add')" class="btn-sec">Cancel</button>
-        <button onclick="window.saveMedication()" class="btn-main">Save Med</button>
-      </div>
+        <div>
+          <label class="text-sm" style="font-weight:700;">Dosage</label>
+          <input type="text" id="add-dose" class="input-box" placeholder="e.g. 500 mg" required />
+        </div>
+        <div>
+          <label class="text-sm" style="font-weight:700;">Time</label>
+          <input type="time" id="add-time" class="input-box" value="08:00" required />
+        </div>
+        <div>
+          <label class="text-sm" style="font-weight:700;">Alarm Tone</label>
+          <div style="display:flex; gap:8px;">
+            <select id="add-tone" class="input-box">
+              <option value="urgent">Urgent Pulse</option>
+              <option value="gentle">Gentle Chime</option>
+              <option value="siren">Escalating Siren</option>
+            </select>
+            <button type="button" data-action="testSelectedTone" class="btn-sec" style="margin-top:4px;">🔊</button>
+          </div>
+        </div>
+        <div>
+          <label class="text-sm" style="font-weight:700;">Instructions</label>
+          <input type="text" id="add-inst" class="input-box" placeholder="Take with food" />
+        </div>
+        <div class="grid-2" style="margin-top:8px;">
+          <button type="button" data-action="hideModal" data-arg="modal-add" class="btn-sec">Cancel</button>
+          <button type="submit" class="btn-main">Save Med</button>
+        </div>
+      </form>
     </div>
   </div>
 
   <!-- Alarm / Verification Modal -->
-  <div id="modal-alarm" class="modal-wrap" style="display:none; align-items:flex-start; padding-top:max(40px, env(safe-area-inset-top));">
+  <div id="modal-alarm" class="modal-wrap" style="align-items:flex-start; padding-top:max(40px, env(safe-area-inset-top));">
     <div class="modal-box" style="margin: 0 auto;">
       <div style="text-align:center;">
         <span class="tag sched" id="alarm-tone-tag">URGENT</span>
@@ -252,7 +262,7 @@
       </div>
 
       <div id="box-cam-init">
-        <button onclick="window.startCamera()" class="btn-main" style="width:100%;">📷 Open Camera to Verify</button>
+        <button data-action="startCamera" class="btn-main" style="width:100%;">📷 Open Camera to Verify</button>
       </div>
 
       <div id="box-cam-live" style="display:none; flex-direction:column; gap:12px;">
@@ -260,7 +270,7 @@
           <video id="vid-stream" playsinline autoplay muted></video>
           <div style="position:absolute; inset:20px; border:2px dashed rgba(45,212,191,0.6); border-radius:16px; pointer-events:none;"></div>
         </div>
-        <button onclick="window.snapPhoto()" class="btn-main" style="width:100%;">📸 Snap Photo</button>
+        <button data-action="snapPhoto" class="btn-main" style="width:100%;">📸 Snap Photo</button>
       </div>
 
       <div id="box-cam-review" style="display:none; flex-direction:column; gap:12px;">
@@ -272,39 +282,41 @@
       <div style="border-top:1px solid #e2e8f0; margin-top:8px; padding-top:16px; text-align:center;">
         <p class="text-sm" style="font-weight:700;">Need more time? Snooze:</p>
         <div class="grid-2" style="margin-top:12px;">
-          <button onclick="window.snooze(15)" class="btn-sec">Snooze 15m</button>
-          <button onclick="window.showSkip()" style="color:#ef4444; font-size:13px; font-weight:700; text-decoration:underline;">Skip / Unable</button>
+          <button data-action="snooze" data-arg="15" class="btn-sec">Snooze 15m</button>
+          <button data-action="showSkip" style="color:#ef4444; font-size:13px; font-weight:700; text-decoration:underline;">Skip / Unable</button>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Skip Modal -->
-  <div id="modal-skip" class="modal-wrap" style="display:none;">
+  <div id="modal-skip" class="modal-wrap">
     <div class="modal-box">
       <h3 class="title-md" style="color:#ef4444;">Skip Dose Override</h3>
       <p class="text-sm">Log your reason for skipping this dose. This disarms the alarm.</p>
-      <select id="skip-reason" class="input-box">
-        <option>Pill Lost or Dropped</option>
-        <option>Feeling Ill / Nausea</option>
-        <option>Empty Bottle</option>
-        <option>Doctor Advised</option>
-      </select>
-      <input type="text" id="skip-note" class="input-box" placeholder="Additional notes..." />
-      <div class="grid-2" style="margin-top:8px;">
-        <button onclick="window.hideModal('modal-skip')" class="btn-sec">Cancel</button>
-        <button onclick="window.confirmSkip()" class="btn-danger">Confirm Skip</button>
-      </div>
+      <form id="form-skip" style="display:flex; flex-direction:column; gap:12px;">
+        <select id="skip-reason" class="input-box">
+          <option>Pill Lost or Dropped</option>
+          <option>Feeling Ill / Nausea</option>
+          <option>Empty Bottle</option>
+          <option>Doctor Advised</option>
+        </select>
+        <input type="text" id="skip-note" class="input-box" placeholder="Additional notes..." />
+        <div class="grid-2" style="margin-top:8px;">
+          <button type="button" data-action="hideModal" data-arg="modal-skip" class="btn-sec">Cancel</button>
+          <button type="submit" class="btn-danger">Confirm Skip</button>
+        </div>
+      </form>
     </div>
   </div>
 
   <!-- PWA Install Modal -->
-  <div id="modal-pwa" class="modal-wrap" style="display:none;">
+  <div id="modal-pwa" class="modal-wrap">
     <div class="modal-box">
       <h3 class="title-md">Install App on iPhone</h3>
       <p class="text-sm">1. Tap the <strong>Share</strong> button at the bottom of Safari.</p>
       <p class="text-sm">2. Scroll down and tap <strong>Add to Home Screen</strong>.</p>
-      <button onclick="window.hideModal('modal-pwa')" class="btn-main">Got It</button>
+      <button data-action="hideModal" data-arg="modal-pwa" class="btn-main">Got It</button>
     </div>
   </div>
 
@@ -313,50 +325,49 @@
     const apiKey = ""; // Gemini API injected at runtime
     const weekLabels = ['M','T','W','T','F','S','S'];
 
-    window.activeTab = 'today';
-    window.meds = [];
-    window.logs = [];
-    window.activeMed = null;
-    window.stream = null;
-    window.photoData = null;
-    window.aiData = null;
+    let activeTab = 'today';
+    let meds = [];
+    let logs = [];
+    let activeMed = null;
+    let stream = null;
+    let photoData = null;
+    let aiData = null;
 
-    // Default Fallback Data
     const DEF_MEDS = [
       { id: 'm1', name: 'Amoxicillin', dosage: '500 mg', time: '08:00', tone: 'urgent', inst: 'Take with food', status: 'pending' },
       { id: 'm2', name: 'Vitamin D3', dosage: '2000 IU', time: '12:30', tone: 'gentle', inst: 'Take after lunch', status: 'pending' }
     ];
 
-    // Ultra-Safe Data Loader
+    // Core Data Loading
     function loadData() {
       try {
-        const sm = localStorage.getItem('snapdose_meds_v2');
-        window.meds = sm ? JSON.parse(sm) : DEF_MEDS;
-        const sl = localStorage.getItem('snapdose_logs_v2');
-        window.logs = sl ? JSON.parse(sl) : [];
+        const sm = localStorage.getItem('snapdose_data_v3');
+        meds = sm ? JSON.parse(sm) : DEF_MEDS;
+        const sl = localStorage.getItem('snapdose_logs_v3');
+        logs = sl ? JSON.parse(sl) : [];
       } catch(e) {
-        window.meds = DEF_MEDS; 
-        window.logs = [];
+        meds = DEF_MEDS; 
+        logs = [];
       }
     }
     
     function saveData() {
       try {
-        localStorage.setItem('snapdose_meds_v2', JSON.stringify(window.meds));
-        localStorage.setItem('snapdose_logs_v2', JSON.stringify(window.logs));
+        localStorage.setItem('snapdose_data_v3', JSON.stringify(meds));
+        localStorage.setItem('snapdose_logs_v3', JSON.stringify(logs));
       } catch(e) {}
     }
 
     // Audio Engine
-    window.actx = null;
-    window.playTone = function(type) {
+    let actx = null;
+    function playTone(type) {
       try {
-        if(!window.actx) window.actx = new (window.AudioContext || window.webkitAudioContext)();
-        if(window.actx.state === 'suspended') window.actx.resume();
-        const osc = window.actx.createOscillator();
-        const gn = window.actx.createGain();
-        osc.connect(gn); gn.connect(window.actx.destination);
-        const t = window.actx.currentTime;
+        if(!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+        if(actx.state === 'suspended') actx.resume();
+        const osc = actx.createOscillator();
+        const gn = actx.createGain();
+        osc.connect(gn); gn.connect(actx.destination);
+        const t = actx.currentTime;
         
         if(type === 'gentle') {
           osc.type = 'sine'; osc.frequency.setValueAtTime(554.37, t);
@@ -374,39 +385,29 @@
       } catch(e){}
     }
 
-    window.alarmInt = null;
-    window.startAlarm = function(type) {
-      window.stopAlarm();
-      window.playTone(type);
-      window.alarmInt = setInterval(() => window.playTone(type), type === 'gentle' ? 1000 : 500);
+    let alarmInt = null;
+    function startAlarm(type) {
+      stopAlarm();
+      playTone(type);
+      alarmInt = setInterval(() => playTone(type), type === 'gentle' ? 1000 : 500);
     }
-    window.stopAlarm = function() { if(window.alarmInt) clearInterval(window.alarmInt); }
+    function stopAlarm() { if(alarmInt) clearInterval(alarmInt); }
 
-    // Navigation & UI Render with Error Catching
-    window.switchTab = function(t) {
-      window.activeTab = t;
-      document.getElementById('tab-today').className = 'nav-btn';
-      document.getElementById('tab-meds').className = 'nav-btn';
-      document.getElementById('tab-audit').className = 'nav-btn';
-      document.getElementById('tab-settings').className = 'nav-btn';
-      document.getElementById('tab-'+t).className = 'nav-btn active';
-      window.render();
-    };
-
-    window.render = function() {
+    // Screen Renderer (Builds HTML safely using data-action attributes)
+    function render() {
       const v = document.getElementById('main-view');
       try {
         let html = '';
 
-        if (window.activeTab === 'today') {
-          const taken = window.meds.filter(m => m.status === 'taken').length;
-          const total = window.meds.length;
+        if (activeTab === 'today') {
+          const taken = meds.filter(m => m.status === 'taken').length;
+          const total = meds.length;
           const pct = total === 0 ? 0 : Math.round((taken/total)*100);
           
           let dayDots = '';
           const todayIdx = (new Date().getDay() + 6) % 7;
           for(let i=0; i<7; i++) {
-            let cls = i === todayIdx ? 'today-active' : (i < todayIdx && window.logs.length > 0 ? 'done' : '');
+            let cls = i === todayIdx ? 'today-active' : (i < todayIdx && logs.length > 0 ? 'done' : '');
             let txt = (cls === 'done' || (i===todayIdx && pct===100)) ? '✓' : '';
             if(i===todayIdx && pct===100) cls = 'done';
             dayDots += `<div class="day-col"><span class="day-lbl"></span><div class="day-dot "></div></div>`;
@@ -414,7 +415,6 @@
 
           html += `
             <div class="card" style="align-items:center; padding:12px;">
-              <!-- Resized Logo -->
               <img src="image.PNG" class="hero-img" onerror="if(this.src.endsWith('image.PNG')){this.src='image.png';}else{this.style.display='none';}" />
             </div>
             <div class="card">
@@ -428,16 +428,16 @@
             </div>
             <div class="section-header">
               <div><h2 class="title-lg">Today's Schedule</h2><p class="text-sm">Active Reminders</p></div>
-              <button onclick="window.showModal('modal-add')" class="btn-main" style="padding:8px 14px; font-size:12px;">+ Add Med</button>
+              <button data-action="showModal" data-arg="modal-add" class="btn-main" style="padding:8px 14px; font-size:12px;">+ Add Med</button>
             </div>
           `;
           
-          if (window.meds.length === 0) {
+          if (meds.length === 0) {
             html += `<div class="card" style="text-align:center;"><p class="text-sm">No medications scheduled.</p></div>`;
           } else {
-            window.meds.forEach(m => {
+            meds.forEach(m => {
               let statCls = m.status === 'taken' ? 'taken' : (m.status === 'skipped' ? 'skip' : 'sched');
-              let btn = (m.status !== 'taken' && m.status !== 'skipped') ? `<button onclick="window.fireAlarm('')" class="btn-main" style="padding:8px 16px;">Take & Snap</button>` : '';
+              let btn = (m.status !== 'taken' && m.status !== 'skipped') ? `<button data-action="fireAlarm" data-arg="" class="btn-main" style="padding:8px 16px;">Take & Snap</button>` : '';
               html += `
                 <div class="card">
                   <div class="med-header">
@@ -456,23 +456,23 @@
             });
           }
         } 
-        else if (window.activeTab === 'meds') {
-          html += `<div class="section-header"><h2 class="title-lg">Roster</h2><button onclick="window.showModal('modal-add')" class="btn-main" style="padding:8px 14px; font-size:12px;">+ Add New</button></div>`;
-          window.meds.forEach(m => {
+        else if (activeTab === 'meds') {
+          html += `<div class="section-header"><h2 class="title-lg">Roster</h2><button data-action="showModal" data-arg="modal-add" class="btn-main" style="padding:8px 14px; font-size:12px;">+ Add New</button></div>`;
+          meds.forEach(m => {
             html += `
               <div class="card" style="flex-direction:row; justify-content:space-between; align-items:center;">
                 <div><h4 class="title-md"></h4><p class="text-sm"> • </p></div>
-                <button onclick="window.delMed('')" style="color:#ef4444; font-weight:700;">Delete</button>
+                <button data-action="delMed" data-arg="" style="color:#ef4444; font-weight:700;">Delete</button>
               </div>
             `;
           });
         }
-        else if (window.activeTab === 'audit') {
+        else if (activeTab === 'audit') {
           html += `<div class="section-header"><h2 class="title-lg">Audit Log</h2></div>`;
-          if (window.logs.length === 0) {
+          if (logs.length === 0) {
             html += `<div class="card" style="text-align:center;"><p class="text-sm">No history recorded.</p></div>`;
           } else {
-            window.logs.forEach(l => {
+            logs.forEach(l => {
               let img = l.img ? `<img src="" style="width:60px; height:60px; object-fit:cover; border-radius:12px;" />` : `<div style="width:60px; height:60px; background:#fff1f2; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px;">⚠️</div>`;
               html += `
                 <div class="card">
@@ -489,95 +489,99 @@
             });
           }
         }
-        else if (window.activeTab === 'settings') {
+        else if (activeTab === 'settings') {
           html += `
             <h2 class="title-lg">Settings</h2>
             <div class="card">
               <h4 class="title-md">Test Audio</h4>
               <div class="grid-2">
-                <button onclick="window.testTone('gentle')" class="btn-sec">🔊 Gentle</button>
-                <button onclick="window.testTone('urgent')" class="btn-sec">🔊 Urgent</button>
-                <button onclick="window.testTone('siren')" class="btn-sec">🔊 Siren</button>
+                <button data-action="testTone" data-arg="gentle" class="btn-sec">🔊 Gentle</button>
+                <button data-action="testTone" data-arg="urgent" class="btn-sec">🔊 Urgent</button>
+                <button data-action="testTone" data-arg="siren" class="btn-sec">🔊 Siren</button>
               </div>
             </div>
-            <button onclick="window.resetApp()" class="btn-danger" style="margin-top:12px; width:100%;">Reset Data</button>
+            <button data-action="resetApp" class="btn-danger" style="margin-top:12px; width:100%;">Reset Data</button>
           `;
         }
         v.innerHTML = html;
       } catch (err) {
-        v.innerHTML = `<div class="card" style="text-align:center;"><p style="color:red;font-weight:bold;">Error Loading App</p><p class="text-sm"></p><button onclick="window.resetApp()" class="btn-main" style="margin-top:12px;">Reset Everything</button></div>`;
+        v.innerHTML = `<div class="card" style="text-align:center;"><p style="color:red;font-weight:bold;">Error Loading App</p><p class="text-sm"></p><button data-action="resetApp" class="btn-main" style="margin-top:12px;">Reset</button></div>`;
       }
-    };
+    }
 
-    // Modal Display Functions
-    window.showModal = function(id) { document.getElementById(id).style.display = 'flex'; };
-    window.hideModal = function(id) { document.getElementById(id).style.display = 'none'; window.stopAlarm(); window.stopCam(); };
+    // App Logic Controllers
+    function switchTab(t) {
+      activeTab = t;
+      document.getElementById('tab-today').className = 'nav-btn';
+      document.getElementById('tab-meds').className = 'nav-btn';
+      document.getElementById('tab-audit').className = 'nav-btn';
+      document.getElementById('tab-settings').className = 'nav-btn';
+      document.getElementById('tab-'+t).className = 'nav-btn active';
+      render();
+    }
 
-    window.testSelectedTone = function() { window.playTone(document.getElementById('add-tone').value); };
-    window.testTone = function(t) { window.playTone(t); };
+    function showModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function hideModal(id) { document.getElementById(id).style.display = 'none'; stopAlarm(); stopCam(); }
+    
+    function testTone(t) { playTone(t); }
+    function testSelectedTone() { playTone(document.getElementById('add-tone').value); }
+    
+    function delMed(id) { meds = meds.filter(m => m.id !== id); saveData(); render(); }
+    function resetApp() { localStorage.clear(); meds = DEF_MEDS; logs = []; saveData(); render(); }
 
-    // Medication Actions
-    window.saveMedication = function() {
+    function saveMedication() {
       const n = document.getElementById('add-name').value || 'New Med';
       const d = document.getElementById('add-dose').value || '1 dose';
       const t = document.getElementById('add-time').value || '08:00';
       const tn = document.getElementById('add-tone').value;
       const i = document.getElementById('add-inst').value;
-      window.meds.push({ id: 'm'+Date.now(), name: n, dosage: d, time: t, tone: tn, inst: i, status: 'pending' });
-      saveData(); window.hideModal('modal-add'); window.render();
-    };
+      meds.push({ id: 'm'+Date.now(), name: n, dosage: d, time: t, tone: tn, inst: i, status: 'pending' });
+      saveData(); hideModal('modal-add'); render();
+    }
 
-    window.delMed = function(id) { window.meds = window.meds.filter(m => m.id !== id); saveData(); window.render(); };
-    
-    window.resetApp = function() { 
-      localStorage.clear(); 
-      window.meds = DEF_MEDS; window.logs = []; 
-      saveData(); window.render(); 
-    };
-
-    // Alarm & Verification Flow
-    window.fireAlarm = function(id) {
-      window.activeMed = window.meds.find(m => m.id === id);
-      if(!window.activeMed) return;
-      document.getElementById('alarm-med-title').innerText = window.activeMed.name;
-      document.getElementById('alarm-med-inst').innerText = window.activeMed.inst;
-      document.getElementById('alarm-tone-tag').innerText = window.activeMed.tone.toUpperCase();
+    // Alarm & Camera Handlers
+    function fireAlarm(id) {
+      activeMed = meds.find(m => m.id === id);
+      if(!activeMed) return;
+      document.getElementById('alarm-med-title').innerText = activeMed.name;
+      document.getElementById('alarm-med-inst').innerText = activeMed.inst;
+      document.getElementById('alarm-tone-tag').innerText = activeMed.tone.toUpperCase();
       
       document.getElementById('box-cam-init').style.display = 'block';
       document.getElementById('box-cam-live').style.display = 'none';
       document.getElementById('box-cam-review').style.display = 'none';
       
-      window.showModal('modal-alarm');
-      window.startAlarm(window.activeMed.tone);
-    };
+      showModal('modal-alarm');
+      startAlarm(activeMed.tone);
+    }
 
-    window.startCamera = async function() {
+    async function startCamera() {
       document.getElementById('box-cam-init').style.display = 'none';
       document.getElementById('box-cam-live').style.display = 'flex';
       try {
-        window.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-        document.getElementById('vid-stream').srcObject = window.stream;
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        document.getElementById('vid-stream').srcObject = stream;
       } catch(e) { alert("Camera access denied by iOS Safari. Check your settings."); }
-    };
+    }
 
-    window.stopCam = function() { if(window.stream) { window.stream.getTracks().forEach(t => t.stop()); window.stream = null; } };
+    function stopCam() { if(stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } }
 
-    window.snapPhoto = function() {
+    function snapPhoto() {
       const vid = document.getElementById('vid-stream');
       const cvs = document.createElement('canvas');
       cvs.width = 400; cvs.height = vid.videoHeight * (400 / vid.videoWidth);
       cvs.getContext('2d').drawImage(vid, 0, 0, cvs.width, cvs.height);
-      window.photoData = cvs.toDataURL('image/jpeg', 0.7);
+      photoData = cvs.toDataURL('image/jpeg', 0.7);
       
-      window.stopCam();
+      stopCam();
       document.getElementById('box-cam-live').style.display = 'none';
       document.getElementById('box-cam-review').style.display = 'flex';
-      document.getElementById('img-preview').src = window.photoData;
+      document.getElementById('img-preview').src = photoData;
       
-      window.runAI(window.photoData);
-    };
+      runAI(photoData);
+    }
 
-    window.runAI = async function(b64) {
+    async function runAI(b64) {
       const st = document.getElementById('ai-status');
       const ax = document.getElementById('ai-actions');
       st.innerText = "Analyzing pill in hand..."; ax.innerHTML = '';
@@ -595,60 +599,95 @@
         const d = await r.json();
         const j = JSON.parse(d.candidates[0].content.parts[0].text);
         
-        window.aiData = j.desc;
+        aiData = j.desc;
         if(j.isValid) {
           st.innerHTML = `<span style="color:#059669;font-weight:bold;">✓ Verified: </span>`;
-          ax.innerHTML = `<button onclick="window.confirmLog()" class="btn-main" style="width:100%;">Confirm & Stop Alarm</button>`;
+          ax.innerHTML = `<button data-action="confirmLog" class="btn-main" style="width:100%;">Confirm & Stop Alarm</button>`;
         } else {
           st.innerHTML = `<span style="color:#e11d48;font-weight:bold;">✕ Failed: </span>`;
-          ax.innerHTML = `<button onclick="window.startCamera()" class="btn-sec" style="width:100%;">Retake Photo</button>`;
+          ax.innerHTML = `<button data-action="startCamera" class="btn-sec" style="width:100%;">Retake Photo</button>`;
         }
       } catch(e) {
-        window.aiData = "Manual fallback logged";
+        aiData = "Manual fallback logged";
         st.innerHTML = `<span style="color:#059669;font-weight:bold;">✓ Photo Logged</span>`;
-        ax.innerHTML = `<button onclick="window.confirmLog()" class="btn-main" style="width:100%;">Confirm & Stop Alarm</button>`;
+        ax.innerHTML = `<button data-action="confirmLog" class="btn-main" style="width:100%;">Confirm & Stop Alarm</button>`;
       }
-    };
+    }
 
-    window.confirmLog = function() {
-      if(!window.activeMed) return;
-      window.logs.unshift({ id: Date.now(), name: window.activeMed.name, status: 'taken', img: window.photoData, aiText: window.aiData, date: new Date().toISOString() });
-      window.activeMed.status = 'taken';
-      saveData(); window.hideModal('modal-alarm'); window.render();
-    };
+    function confirmLog() {
+      if(!activeMed) return;
+      logs.unshift({ id: Date.now(), name: activeMed.name, status: 'taken', img: photoData, aiText: aiData, date: new Date().toISOString() });
+      activeMed.status = 'taken';
+      saveData(); hideModal('modal-alarm'); render();
+    }
 
-    window.snooze = function(m) {
-      if(window.activeMed) { window.activeMed.status = 'snoozed'; }
-      saveData(); window.hideModal('modal-alarm'); window.render();
-    };
+    function snooze(mins) {
+      if(activeMed) { activeMed.status = 'snoozed'; }
+      saveData(); hideModal('modal-alarm'); render();
+    }
 
-    window.showSkip = function() {
-      window.hideModal('modal-alarm');
-      window.showModal('modal-skip');
-    };
+    function showSkip() { hideModal('modal-alarm'); showModal('modal-skip'); }
 
-    window.confirmSkip = function() {
-      if(!window.activeMed) return;
-      window.logs.unshift({ id: Date.now(), name: window.activeMed.name, status: 'skipped', reason: document.getElementById('skip-reason').value, date: new Date().toISOString() });
-      window.activeMed.status = 'skipped';
-      saveData(); window.hideModal('modal-skip'); window.render();
-    };
+    function confirmSkip() {
+      if(!activeMed) return;
+      logs.unshift({ id: Date.now(), name: activeMed.name, status: 'skipped', reason: document.getElementById('skip-reason').value, date: new Date().toISOString() });
+      activeMed.status = 'skipped';
+      saveData(); hideModal('modal-skip'); render();
+    }
 
-    // Auto-check schedule
+    // Global Click Listener (Bypasses iOS strict DOM execution rules entirely)
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('button, .pwa-btn, [data-action]');
+      if (!btn) return;
+      
+      const action = btn.getAttribute('data-action');
+      const arg = btn.getAttribute('data-arg');
+      
+      if (!action) return;
+      
+      // Stop Safari from treating this as a regular broken link click
+      e.preventDefault();
+      
+      switch(action) {
+        case 'switchTab': switchTab(arg); break;
+        case 'showModal': showModal(arg); break;
+        case 'hideModal': hideModal(arg); break;
+        case 'testTone': testTone(arg); break;
+        case 'testSelectedTone': testSelectedTone(); break;
+        case 'delMed': delMed(arg); break;
+        case 'resetApp': resetApp(); break;
+        case 'fireAlarm': fireAlarm(arg); break;
+        case 'startCamera': startCamera(); break;
+        case 'snapPhoto': snapPhoto(); break;
+        case 'confirmLog': confirmLog(); break;
+        case 'snooze': snooze(parseInt(arg)); break;
+        case 'showSkip': showSkip(); break;
+      }
+    });
+
+    // Form Handlers
+    document.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (e.target.id === 'form-add') saveMedication();
+      if (e.target.id === 'form-skip') confirmSkip();
+    });
+
+    // Auto-check schedule loop
     setInterval(() => {
       if(document.getElementById('modal-alarm').style.display === 'flex') return;
       const t = new Date().toTimeString().substring(0,5);
-      const m = window.meds.find(x => x.time === t && x.status === 'pending');
-      if(m) window.fireAlarm(m.id);
+      const m = meds.find(x => x.time === t && x.status === 'pending');
+      if(m) fireAlarm(m.id);
     }, 10000);
 
     // Boot App
     window.onload = function() {
       loadData();
-      window.render();
+      render();
     };
   </script>
 </body>
 </html>
+
 
 
